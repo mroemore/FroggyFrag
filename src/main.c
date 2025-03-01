@@ -3,6 +3,12 @@
 
 #include "raylib.h"
 
+#if defined(PLATFORM_DESKTOP)
+    #define GLSL_VERSION            330
+#else   // PLATFORM_ANDROID, PLATFORM_WEB
+    #define GLSL_VERSION            100
+#endif
+
 typedef struct {
     Font* font;
     int glyph_widths[255];
@@ -47,6 +53,8 @@ int main(void){
     float cameraX = 0.0f;
     float cameraY = 0.0f;
 
+    Shader shader = LoadShader(0, TextFormat("resources/shaders/testshader.fs", GLSL_VERSION));
+
     SetTargetFPS(60);
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -66,6 +74,12 @@ int main(void){
             BeginMode2D(screenSpaceCamera);
                 DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
             EndMode2D();
+
+            BeginShaderMode(shader);
+                // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
+                DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+            EndShaderMode();
+
 
             DrawText(TextFormat("Screen resolution: %ix%i", screenWidth, screenHeight), 10, 10, 20, DARKBLUE);
             DrawText(TextFormat("World resolution: %ix%i", virtualScreenWidth, virtualScreenHeight), 10, 40, 20, DARKGREEN);
