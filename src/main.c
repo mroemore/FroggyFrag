@@ -3,11 +3,11 @@
 
 #include "raylib.h"
 
-#if defined(PLATFORM_DESKTOP)
+// #if defined(PLATFORM_DESKTOP)
     #define GLSL_VERSION            330
-#else   // PLATFORM_ANDROID, PLATFORM_WEB
-    #define GLSL_VERSION            100
-#endif
+// #else   // PLATFORM_ANDROID, PLATFORM_WEB
+//     #define GLSL_VERSION            100
+// #endif
 
 typedef struct {
     Font* font;
@@ -27,9 +27,9 @@ int main(void){
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - smooth pixel-perfect camera");
 
-    const char msg[256] = "spectrax v0.1.5: wazzap!?";
+    const char msg[256] = "It finally works!";
 
-    Font fontTtf = LoadFontEx("resources/DigitalDisco.ttf", 16, 0, 252);
+    Font fontTtf = LoadFont("resources/alagard.png");// LoadFontEx("resources/Daydream.ttf", 16, 0, 252);
     FontInfo fi;
     initFontInfo(&fi, fontTtf);
     SetTextLineSpacing(8);
@@ -53,33 +53,40 @@ int main(void){
     float cameraX = 0.0f;
     float cameraY = 0.0f;
 
-    Shader shader = LoadShader(0, TextFormat("resources/shaders/testshader.fs", GLSL_VERSION));
+    Shader shader = LoadShader(0, "resources/shaders/crtshader.frag.glsl");
+    Image smiley = LoadImage("resources/smiley.png");
+    Texture2D smileTex = LoadTextureFromImage(smiley);      // Image converted to texture, uploaded to GPU memory (VRAM)
+    UnloadImage(smiley);
 
     SetTargetFPS(60);
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        float time = GetTime();
         BeginTextureMode(target);
-            ClearBackground(RAYWHITE);
-
-            BeginMode2D(worldSpaceCamera);
-                //DrawTextEx(fontTtf, msg, (Vector2){ 8.0f, 100.0f }, (float)fontTtf.baseSize, 0, LIME);
+                BeginMode2D(worldSpaceCamera);
+                ClearBackground(RAYWHITE);
                 AnimateText(fontTtf, fi, msg, (Vector2){ 8.0f, 100.0f }, (float)fontTtf.baseSize, 4, LIME, GetTime());
-            EndMode2D();
+                DrawTexture(smileTex, 10,10,LIME);
+//                DrawText("Hi there, world.", 10,110, 16, LIME);
+                EndMode2D();
         EndTextureMode();
+        
+        // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
+            //DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, origin, RED);
 
         BeginDrawing();
             ClearBackground(WHITE);
+            
 
-            BeginMode2D(screenSpaceCamera);
-                DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
-            EndMode2D();
-
+            //BeginMode2D(screenSpaceCamera);
             BeginShaderMode(shader);
-                // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
-                DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+            SetShaderValue(shader, GetShaderLocation(shader, "iTime"), &time, SHADER_UNIFORM_FLOAT);
+                //DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, origin, RED);
+                DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
             EndShaderMode();
 
+            //EndMode2D();
 
             DrawText(TextFormat("Screen resolution: %ix%i", screenWidth, screenHeight), 10, 10, 20, DARKBLUE);
             DrawText(TextFormat("World resolution: %ix%i", virtualScreenWidth, virtualScreenHeight), 10, 40, 20, DARKGREEN);
