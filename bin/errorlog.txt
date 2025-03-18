@@ -1,0 +1,5 @@
+INFO: FILEIO: [resources/shaders/screenfx2.frag.glsl] Text file loaded successfully
+WARNING: SHADER: [ID 28] Failed to compile fragment shader code
+WARNING: SHADER: [ID 28] Compile error: 0:33(2): error: syntax error, unexpected '}', expecting ',' or ';'
+
+shader is invalid, aborting load

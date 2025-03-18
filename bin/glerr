@@ -1,0 +1,4 @@
+INFO: FILEIO: [resources/shaders/base.frag.glsl] Text file loaded successfully
+INFO: SHADER: [ID 6] Fragment shader compiled successfully
+INFO: SHADER: [ID 7] Program shader loaded successfully
+INFO: SHADER: [ID 5] Unloaded shader program data from VRAM (GPU)

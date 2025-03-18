@@ -1,0 +1,37 @@
+BasedOnStyle:  Mozilla
+UseTab: ForIndentation
+AlignAfterOpenBracket: Align
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+IndentWidth: 8
+# Uncommenting these lines will sometimes result in lines following an
+# if(){} or for(){} block being attached to the end of the block.
+AllowShortIfStatementsOnASingleLine: true
+# AllowShortLoopsOnASingleLine: true
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+ColumnLimit: 0
+PointerAlignment: Right
+SortIncludes: false
+SpaceBeforeParens: Never
+SpacesInContainerLiterals: false

@@ -1,0 +1,14 @@
+{
+  "contentW": 320,
+  "contentH": 240,
+  "screenW": 600,
+  "screenH": 600,
+  "systemFontPath": "resources/fonts/04B_03__.TTF",
+  "shaderFolder": "resources/shaders",
+  "backgroundImagePath": "resources/images/train.png",
+  "screenshotsFolder": "resources/screenshots",
+  "imagesFolder": "resources/images",
+  "autoReload": true,
+  "reloadCheckInterval": 1.5,
+  "maintainContentAspectRatio": true
+}

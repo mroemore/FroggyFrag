@@ -1,0 +1,32 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Iinc",
+      "-DLINUX",
+      "-g",
+      "-o",
+      "src/callback.o",
+      "src/callback.c"
+    ],
+    "directory": "/home/krang/raylib-stuff",
+    "file": "/home/krang/raylib-stuff/src/callback.c",
+    "output": "/home/krang/raylib-stuff/src/callback.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Iinc",
+      "-DLINUX",
+      "-g",
+      "-o",
+      "src/animation.o",
+      "src/animation.c"
+    ],
+    "directory": "/home/krang/raylib-stuff",
+    "file": "/home/krang/raylib-stuff/src/animation.c",
+    "output": "/home/krang/raylib-stuff/src/animation.o"
+  }
+]
