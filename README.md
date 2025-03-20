@@ -1,7 +1,7 @@
 ![Happy little low-polygon frog, jumping in the air](https://github.com/mroemore/FroggyFrag/blob/main/bin/resources/Froggy.png)
 
 # FroggyFrag
-An OpenGL fragment shader development tool.
+An OpenGL fragment shader preview tool, for assisting in shader development.
 
 ## Build Instructions
 1. Install GCC.
