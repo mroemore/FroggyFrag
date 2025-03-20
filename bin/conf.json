@@ -11,6 +11,6 @@
   "imagesFolder": "resources/images",
   "autoReload": true,
   "reloadCheckInterval": 1.5,
-  "maintainContentAspectRatio": true,
+  "maintainContentAspectRatio": false,
   "copyOnDrag": false
 }

@@ -21,8 +21,6 @@ void addAnimation(Animation *a) {
 void tickAnimations(float timeDelta) {
 	for(int i = 0; i < animationListCount; i++) {
 		if(*animationList[i]->trigger == animationList[i]->match && animationList[i]->running) {
-			printf("animation [ %i ] processing...\n", i);
-
 			animationList[i]->animate(animationList[i], timeDelta);
 		}
 	}
@@ -67,10 +65,8 @@ void colourFadeOutAnimation(void *self, float timeDelta) {
 	// Check if the animation has finished
 	if(ca->base.currentTime >= ca->base.duration) {
 		ca->base.running = false;
-		printf("Animation Finished.\n");
 		*ca->toAnimate = vec4ToColor(ca->targetNormalised); // Ensure the final value is exact
 		if(ca->base.onFinish->f != NULL) {
-			printf("Callback not null.\n");
 			applyCallback(ca->base.onFinish);
 		}
 	}
@@ -91,9 +87,7 @@ void colourFadeInAnimation(void *self, float timeDelta) {
 	if(ca->base.currentTime >= ca->base.duration) {
 		ca->base.running = false;
 		*ca->toAnimate = vec4ToColor(ca->originalNormalised); // Ensure the final value is exact
-		printf("Animation Finished.\n");
 		if(ca->base.onFinish->f != NULL) {
-			printf("Callback not null.\n");
 			applyCallback(ca->base.onFinish);
 		}
 	}
