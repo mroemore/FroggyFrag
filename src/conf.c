@@ -24,14 +24,10 @@ static ConfigMap configMap[CONFIG_PARAMETER_COUNT] = {
 
 void setConfigValue(Config *c, ConfigMap cm[], char *key, cJSON *jsonRoot) {
 	bool keyFound = false;
-	printf("Attempting Key: %s\n", key);
 	cJSON *value = cJSON_GetObjectItemCaseSensitive(jsonRoot, key);
 	if(value != NULL) {
-		printf("KeyComp: ");
-
 		for(int i = 0; i < CONFIG_PARAMETER_COUNT; i++) {
 			if(strcmp(cm[i].key, key) == 0) {
-				printf("!");
 				void *param = (void *)((char *)c + cm[i].offset);
 				switch(cm[i].type) {
 					case CVT_INT:
@@ -76,7 +72,7 @@ void parseJSONConfig(Config *conf, const char *filePath) {
 	if(fileData) {
 		cJSON *json = cJSON_Parse(fileData);
 		if(json) {
-			printf("\n\nBEGIN CONFIG PARSE\n\n");
+			printf("\n\nBEGIN CONFIG PARSING\n\n");
 			setConfigValue(conf, configMap, "screenW", json);
 			setConfigValue(conf, configMap, "screenH", json);
 			setConfigValue(conf, configMap, "systemFontPath", json);
@@ -88,7 +84,7 @@ void parseJSONConfig(Config *conf, const char *filePath) {
 			setConfigValue(conf, configMap, "autoReload", json);
 			setConfigValue(conf, configMap, "maintainContentAspectRatio", json);
 			conf->initialized = true;
-			printf("\n\nEND CONFIG PARSE\n\n");
+			printf("\n\nEND CONFIG PARSING\n\n");
 			cJSON_Delete(json);
 		} else {
 			fprintf(stderr, "ERROR: json not parsed\n");
@@ -103,6 +99,7 @@ static void initDefaultConf(Config *conf) {
 	conf->screenW = 1280;
 	conf->screenH = 960;
 	conf->shaderFolder = "resources/shaders";
+	conf->shaderFileExtension = ".glsl";
 	conf->backgroundImagePath = "resources/train.png";
 	conf->autoReload = true;
 	conf->reloadCheckInterval = 1.5;
