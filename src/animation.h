@@ -41,25 +41,12 @@ typedef struct {
 	Callback *onFinish;
 } Animation;
 
-typedef enum {
-	AET_ANIMATION,
-	AET_TIMER
-} AnimationElementType;
-
-typedef struct {
-	union {
-		Animation a;
-		Timer t;
-	} data;
-	AnimationElementType type;
-} AnimationElement;
-
 typedef struct {
 	Animation *animations[MAX_ANIMATIONS_PER_GROUP];
 	int animationCount;
 	Timer *timers[MAX_TIMERS_PER_GROUP];
 	int timerCount;
-} AnimationSequence;
+} AnimationGroup;
 
 typedef struct {
 	Animation base;
@@ -79,7 +66,6 @@ void tickAnimations(float timeDelta);
 AnimationManager *createAnimationManager();
 void resetAnimation(Animation *a);
 void addAnimation(Animation *a);
-AnimationSequence *createAnimationGroup();
 
 // utility functions
 Color vec4ToColor(Vector4 in);
