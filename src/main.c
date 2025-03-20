@@ -118,11 +118,6 @@ int main(void) {
 
 	float windowResolution[2] = { (float)screenWidth, (float)screenHeight };
 
-	Color infoBgColour = (Color){ 0, 0, 0, 0 };
-	Color infoTxtColour = (Color){ 45, 45, 45, 0 };
-	ColourAnimation bgAnim;
-	ColourAnimation txtAnim;
-
 	// TextBox *ttb = createNotificationTextBox(10, 10, 100, 100, "Hello,\n there.", (Color){ 0, 0, 0, 170 }, (Color){ 200, 200, 200, 200 });
 
 	float reloadTimer = 0.0;
@@ -155,10 +150,6 @@ int main(void) {
 		if(IsKeyReleased(KEY_MINUS) || IsKeyReleased(KEY_LEFT)) {
 			decShaderIndex(&sm);
 		}
-		if(IsKeyReleased(KEY_H)) {
-			bgAnim.running = true;
-			txtAnim.running = true;
-		}
 		if(IsKeyReleased(KEY_Q)) {
 			drawConsole = !drawConsole;
 		}
@@ -187,11 +178,11 @@ int main(void) {
 		DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
 		EndShaderMode();
 
-		DrawRectangle(2, 2, 600, 100, infoBgColour);
-		DrawTextEx(fontSystem, TextFormat("Screen resolution: %ix%i", screenWidth, screenHeight), (Vector2){ 10, 10 }, 14, 2, infoTxtColour);
-		DrawTextEx(fontSystem, TextFormat("World resolution: %ix%i", virtualScreenWidth, virtualScreenHeight), (Vector2){ 10, 34 }, 14, 2, infoTxtColour);
-		DrawTextEx(fontSystem, TextFormat("Current Shader: [%i/%i]%s", sm.currentShaderIndex, sm.loadedShaderCount, sm.shaderPaths[sm.currentShaderIndex]), (Vector2){ 10, 50 }, 14, 2, infoTxtColour);
-		DrawTextEx(fontSystem, "Keys: H: help. R: reload shader, A:auto-reload =: next shader, -:prev shader, Esc: quit", (Vector2){ 10, 68 }, 14, 2, infoTxtColour);
+		// DrawRectangle(2, 2, 600, 100, infoBgColour);
+		// DrawTextEx(fontSystem, TextFormat("Screen resolution: %ix%i", screenWidth, screenHeight), (Vector2){ 10, 10 }, 14, 2, infoTxtColour);
+		// DrawTextEx(fontSystem, TextFormat("World resolution: %ix%i", virtualScreenWidth, virtualScreenHeight), (Vector2){ 10, 34 }, 14, 2, infoTxtColour);
+		// DrawTextEx(fontSystem, TextFormat("Current Shader: [%i/%i]%s", sm.currentShaderIndex, sm.loadedShaderCount, sm.shaderPaths[sm.currentShaderIndex]), (Vector2){ 10, 50 }, 14, 2, infoTxtColour);
+		// DrawTextEx(fontSystem, "Keys: H: help. R: reload shader, A:auto-reload =: next shader, -:prev shader, Esc: quit", (Vector2){ 10, 68 }, 14, 2, infoTxtColour);
 
 		if(drawConsole) {
 			drawMessageBuffer(&sm.errors, fontSystem, (Vector2){ 10, 10 }, 20);
