@@ -5,9 +5,12 @@
 
 #include "raylib.h"
 #include "callback.h"
+#include "timer.h"
 
 #define MAX_DRAWABLES 1024
-#define MAX_ANIMATIONS_PER_DRAWABLE 8
+#define MAX_ANIMATIONS_PER_GROUP 64
+#define MAX_TIMERS_PER_GROUP 64
+#define MAX_ANIMATIONS_PER_DRAWABLE 16
 
 #define MAX_TEXTBOX_LINES 128
 #define MAX_TEXTBOX_LINE_LENGTH 512
@@ -38,6 +41,26 @@ typedef struct {
 	Callback *onFinish;
 } Animation;
 
+typedef enum {
+	AET_ANIMATION,
+	AET_TIMER
+} AnimationElementType;
+
+typedef struct {
+	union {
+		Animation a;
+		Timer t;
+	} data;
+	AnimationElementType type;
+} AnimationElement;
+
+typedef struct {
+	Animation *animations[MAX_ANIMATIONS_PER_GROUP];
+	int animationCount;
+	Timer *timers[MAX_TIMERS_PER_GROUP];
+	int timerCount;
+} AnimationSequence;
+
 typedef struct {
 	Animation base;
 	Color *toAnimate;
@@ -56,6 +79,7 @@ void tickAnimations(float timeDelta);
 AnimationManager *createAnimationManager();
 void resetAnimation(Animation *a);
 void addAnimation(Animation *a);
+AnimationSequence *createAnimationGroup();
 
 // utility functions
 Color vec4ToColor(Vector4 in);

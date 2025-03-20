@@ -18,6 +18,13 @@ void addAnimation(Animation *a) {
 	}
 }
 
+AnimationGroup *createAnimationGroup() {
+	AnimationGroup *ag = (AnimationGroup *)malloc(sizeof(AnimationGroup));
+	ag->animationCount = 0;
+	ag->timerCount = 0;
+	return ag;
+}
+
 void tickAnimations(float timeDelta) {
 	for(int i = 0; i < animationListCount; i++) {
 		if(*animationList[i]->trigger == animationList[i]->match && animationList[i]->running) {

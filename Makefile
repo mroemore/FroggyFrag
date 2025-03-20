@@ -8,7 +8,7 @@ SRC_DIR = src
 OUT_DIR = bin
 TEST_DIR = tests
 
-TARGET = ani
+TARGET = froggy-frag
 TEST_TARGET = $(OUT_DIR)/$(TARGET)_test
 
 SRCS = 	$(SRC_DIR)/main.c \
