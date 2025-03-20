@@ -1,4 +1,4 @@
-# FraggyFrog
+# FroggyFrag
 An OpenGL fragment shader development tool.
 
 ## Build Instructions
