@@ -37,16 +37,16 @@ void tearDown() {
 
 void test_createTimer() {
 	DemoData *dd = create_dd(4, 2.2, false, "demo1");
-	Timer *t = createTimer(1.0, dd_cb, dd);
+	Timer *t = createTimer(TT_ONCE, 1.0, dd_cb, dd);
 }
 
 void testTimerSys_1() {
 	initTimerList();
 	DemoData *d1 = create_dd(5, 2.7f, true, "d1");
 	DemoData *d2 = create_dd(6, 11.7f, false, "d2");
-	Timer *t1 = createTimer(2.0f, dd_cb, d1);
-	Timer *t2 = createTimer(.5f, dd_cb, d2);
-	Timer *t3 = createTimer(4.5f, startTimerCallback, t2);
+	Timer *t1 = createTimer(TT_ONCE, 2.0f, dd_cb, d1);
+	Timer *t2 = createTimer(TT_ONCE, .5f, dd_cb, d2);
+	Timer *t3 = createTimer(TT_ONCE, 4.5f, startTimerCallback, t2);
 	startTimer(t1);
 	startTimer(t3);
 

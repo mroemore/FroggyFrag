@@ -1,4 +1,5 @@
-INFO: FILEIO: [resources/shaders/base.frag.glsl] Text file loaded successfully
-INFO: SHADER: [ID 6] Fragment shader compiled successfully
-INFO: SHADER: [ID 7] Program shader loaded successfully
-INFO: SHADER: [ID 5] Unloaded shader program data from VRAM (GPU)
+INFO: FILEIO: [resources/shaders/screenfx2.frag.glsl] Text file loaded successfully
+WARNING: SHADER: [ID 21] Failed to compile fragment shader code
+WARNING: SHADER: [ID 21] Compile error: 0:33(2): error: syntax error, unexpected '}', expecting ',' or ';'
+
+shader is invalid, aborting load

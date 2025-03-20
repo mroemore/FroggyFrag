@@ -7,7 +7,7 @@
 #include "cJSON.h"
 
 #define MAX_PATH_LENGTH 256
-#define CONFIG_PARAMETER_COUNT 10
+#define CONFIG_PARAMETER_COUNT 12
 
 typedef enum {
 	CVT_INT,
@@ -33,7 +33,9 @@ typedef struct {
 	float reloadCheckInterval;
 	bool maintainContentAspectRatio;
 	char *systemFontPath;
+	char *shaderFileExtension;
 	Font systemFont;
+	bool copyOnDrag;
 	bool initialized;
 } Config;
 
@@ -52,4 +54,5 @@ int getConfigValueInt(char *key);
 float getConfigValueFloat(char *key);
 char *getConfigValueString(char *key);
 bool getConfigValueBool(char *key);
+
 #endif

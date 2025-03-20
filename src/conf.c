@@ -16,7 +16,10 @@ static ConfigMap configMap[CONFIG_PARAMETER_COUNT] = {
 	{ "autoReload", offsetof(Config, autoReload), CVT_BOOLEAN },
 	{ "reloadCheckInterval", offsetof(Config, reloadCheckInterval), CVT_FLOAT },
 	{ "maintainContentAspectRatio", offsetof(Config, maintainContentAspectRatio), CVT_BOOLEAN },
-	{ "systemFontPath", offsetof(Config, systemFontPath), CVT_STRING }
+	{ "systemFontPath", offsetof(Config, systemFontPath), CVT_STRING },
+	{ "copyOnDrag", offsetof(Config, copyOnDrag), CVT_BOOLEAN },
+	{ "shaderFileExtension", offsetof(Config, shaderFileExtension), CVT_STRING }
+
 };
 
 void setConfigValue(Config *c, ConfigMap cm[], char *key, cJSON *jsonRoot) {
@@ -106,6 +109,7 @@ static void initDefaultConf(Config *conf) {
 	conf->maintainContentAspectRatio = false;
 	conf->systemFontPath = "resources/fonts/04B_03__.TTF";
 	conf->initialized = true;
+	conf->copyOnDrag = false;
 }
 
 void freeConfig(Config *conf) {

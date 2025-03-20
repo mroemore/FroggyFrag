@@ -1,4 +1,5 @@
 #include "timer.h"
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,8 +17,9 @@ void initTimerList() {
 	printf("Free ptr ptr size: %lu bytes\n", sizeof(timerList.freeTimers[0]));
 }
 
-Timer *createTimer(float duration, TimerCallback tc, void *data) {
+Timer *createTimer(TimerType type, float duration, TimerCallback tc, void *data) {
 	Timer t;
+	t.type = type;
 	t.elapsed = 0.0;
 	t.duration = duration;
 	t.tc = tc;
@@ -30,16 +32,19 @@ Timer *createTimer(float duration, TimerCallback tc, void *data) {
 		*timerList.freeTimers[timerList.freeTimerCount - 1] = t;
 		tPtr = timerList.freeTimers[timerList.freeTimerCount - 1];
 		timerList.freeTimerCount--;
+		printf("freelist timer creation.\n");
 	} else {
 		if(timerList.timerCount < MAX_CONCURRENT_TIMERS) {
 			timerList.timers[timerList.timerCount] = t;
-			tPtr = timerList.freeTimers[timerList.timerCount];
+			tPtr = &timerList.timers[timerList.timerCount];
 			timerList.timerCount++;
+			printf("normal timer creation.\n");
 		} else {
 			fprintf(stderr, "ERROR: Too many timers.\n");
 		}
 	}
 	printTimerListStats("ADD");
+	printf("duration: %f\n", tPtr->duration);
 
 	return tPtr;
 }
@@ -89,8 +94,17 @@ void tickTimers(float interval) {
 			if(timerList.timers[i].running) {
 				timerList.timers[i].elapsed += interval;
 				if(timerList.timers[i].elapsed > timerList.timers[i].duration) {
-					timerList.timers[i].tc(timerList.timers[i].tcData);
-					removeTimer(&timerList.timers[i]);
+					if(timerList.timers[i].tc != NULL) {
+						timerList.timers[i].tc(timerList.timers[i].tcData);
+					}
+					if(timerList.timers[i].type == TT_ONCE) {
+						removeTimer(&timerList.timers[i]);
+					} else if(timerList.timers[i].type == TT_LOOPING || timerList.timers[i].type == TT_REPEATING) {
+						timerList.timers[i].elapsed = 0.0;
+					}
+					if(timerList.timers[i].type == TT_REPEATING) {
+						timerList.timers[i].running = false;
+					}
 				}
 			}
 		}

@@ -5,7 +5,6 @@
 
 #include "raylib.h"
 #include "callback.h"
-#include "timer.h"
 
 #define MAX_DRAWABLES 1024
 #define MAX_ANIMATIONS_PER_DRAWABLE 8
@@ -21,11 +20,6 @@ typedef enum {
 	IT_LINEAR,
 	IT_COUNT
 } InterpType;
-
-typedef struct {
-	Rectangle bounds;
-	DrawCallback draw;
-} Drawable;
 
 typedef enum {
 	AT_COLOUR,
@@ -56,39 +50,12 @@ typedef struct {
 	uint16_t count;
 } AnimationManager;
 
-typedef struct {
-	Drawable base;
-	Animation animationList[MAX_ANIMATIONS_PER_DRAWABLE];
-	uint8_t animationCount;
-} Animateable;
-
-typedef struct {
-	Animateable base;
-	const char **text;
-	int maxLines;
-	uint16_t lineCount;
-	Color cBackground;
-	Color cText;
-	bool visible;
-	int padding;
-	Font font;
-	int fontSize;
-} TextBox;
-
-typedef enum {
-	TOR_TRUNCATE,
-	TOR_WRAP,
-	TOR_ELLIPSES,
-	TOR_EXPAND
-} TextOverflowRule;
-
-// general drawing functions
-void addDrawable(Drawable *d);
-void drawItems();
+void tickAnimations(float timeDelta);
 
 // setup & logic
 AnimationManager *createAnimationManager();
 void resetAnimation(Animation *a);
+void addAnimation(Animation *a);
 
 // utility functions
 Color vec4ToColor(Vector4 in);
@@ -99,12 +66,5 @@ void colourFadeInAnimation(void *self, float timeDelta);
 void colourFadeOutAnimation(void *self, float timeDelta);
 ColAnimation *createColourFadeAnimation(bool *trigger, Color *toAnimate, Color target, bool match, float duration, bool fadeIn);
 void toggleAnimationCB(void *data);
-
-void createColourAnimationInOut(bool *trigger, Color *toAnimate, Color target, float transitionTime, float duration);
-
-TextBox *createTextBoxEx(Rectangle r, char *text, int maxLines, Color bgColour, Font f, int fontSize, Color txtColour, bool visible, TextOverflowRule overflow, int padding);
-TextBox *createTextBox(int x, int y, int w, int h, char *text, Color bgCol, Color txtCol);
-
-void drawTextBox(void *self);
 
 #endif

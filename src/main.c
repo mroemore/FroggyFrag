@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <math.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -12,6 +12,7 @@
 #include "conf.h"
 #include "timer.h"
 #include "animation.h"
+#include "gui.h"
 
 #define MAX_SHADERPATHS 256
 #define MAX_IMAGEPATHS 256
@@ -36,7 +37,9 @@ typedef struct {
 	char *shaderPaths[MAX_SHADERPATHS];
 	uint16_t loadedShaderCount;
 	uint16_t currentShaderIndex;
+	bool loadSuccessful;
 	MessageBuffer errors;
+	TextBox *errorNotification;
 } ShaderManager;
 
 typedef struct {
@@ -56,19 +59,11 @@ int updateScreenDimensions(Rectangle *sourceRect, Rectangle *destRect, int *scre
 
 // ShaderManager functions
 void addShaderPath(ShaderManager *sm, char *newPath);
-void initShaderManager(ShaderManager *sm, char *folder);
+void initShaderManager(ShaderManager *sm, TextBox *notificationTB, char *folder);
 void swapOrReloadShader(ShaderManager *sm, int index);
 void incShaderIndex(ShaderManager *sm);
 void decShaderIndex(ShaderManager *sm);
 void rescanDirectory(ShaderManager *sm, char *folderPath);
-
-// animations
-void initColourAnimation(ColourAnimation *ca, Color *toAnimate, float duration, Color final, InterpType it);
-void animateColour(ColourAnimation *ca, float timeDelta);
-
-// funky font stuff
-void initFontInfo(FontInfo *fi, Font f);
-void AnimateText(Font f, FontInfo fi, const char *text, Vector2 pos, float size, int spacing, Color c, float time);
 
 // error capture
 void redirect_stdout_to_file(const char *filename);
@@ -91,9 +86,7 @@ int main(void) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 	InitWindow(screenWidth, screenHeight, "Shader Preview Tool");
 
-	const char msg[256] = "Shading shaders, with Gee El Ess El!";
 	Font fontSystem = LoadFont(getConfigValueString("systemFontPath"));
-	FontInfo fi;
 	SetTextLineSpacing(8);
 
 	Image bg = LoadImage(getConfigValueString("backgroundImagePath"));
@@ -120,7 +113,8 @@ int main(void) {
 	int loadedShaderCount = 0;
 	int selectedShader = 0;
 	ShaderManager sm;
-	initShaderManager(&sm, getConfigValueString("shaderFolder"));
+	TextBox *notificationTB = createNotificationTextBox(10, 10, 750, 75, "default", (Color){ 0, 0, 0, 170 }, (Color){ 200, 200, 200, 200 });
+	initShaderManager(&sm, notificationTB, getConfigValueString("shaderFolder"));
 
 	float windowResolution[2] = { (float)screenWidth, (float)screenHeight };
 
@@ -129,21 +123,20 @@ int main(void) {
 	ColourAnimation bgAnim;
 	ColourAnimation txtAnim;
 
-	TextBox *ttb = createTextBox(10, 10, 100, 100, "Hello,\n there.", (Color){ 0, 0, 0, 170 }, (Color){ 200, 200, 200, 200 });
-
-	initColourAnimation(&bgAnim, &infoBgColour, .5, (Color){ 0, 0, 0, 170 }, IT_LINEAR);
-	initColourAnimation(&txtAnim, &infoTxtColour, .5, (Color){ 200, 200, 200, 200 }, IT_LINEAR);
+	// TextBox *ttb = createNotificationTextBox(10, 10, 100, 100, "Hello,\n there.", (Color){ 0, 0, 0, 170 }, (Color){ 200, 200, 200, 200 });
 
 	float reloadTimer = 0.0;
 	bool drawConsole = false;
+	float frameTime = 0.0;
 	float reloadCheckInterval = getConfigValueFloat("reloadCheckInterval");
 	bool autoReload = getConfigValueBool("autoReload");
 	SetTargetFPS(60);
 
 	while(!WindowShouldClose()) // Detect window close button or ESC key
 	{
-		reloadTimer += GetFrameTime();
-		if(reloadTimer >= reloadCheckInterval) {
+		frameTime = GetFrameTime();
+		reloadTimer += frameTime;
+		if(reloadTimer >= reloadCheckInterval && sm.loadSuccessful) {
 			swapOrReloadShader(&sm, sm.currentShaderIndex);
 			reloadTimer = 0.0;
 		}
@@ -175,10 +168,8 @@ int main(void) {
 		if(IsKeyReleased(KEY_F5)) {
 			rescanDirectory(&sm, getConfigValueString("shaderFolder"));
 		}
-		float timeDelta = GetFrameTime();
 
-		animateColour(&bgAnim, timeDelta);
-		animateColour(&txtAnim, timeDelta);
+		float timeDelta = GetFrameTime();
 
 		float time = GetTime();
 		BeginTextureMode(target);
@@ -205,6 +196,8 @@ int main(void) {
 		if(drawConsole) {
 			drawMessageBuffer(&sm.errors, fontSystem, (Vector2){ 10, 10 }, 20);
 		}
+		tickAnimations(frameTime);
+		tickTimers(frameTime);
 		drawItems();
 		DrawFPS(GetScreenWidth() - 95, 10);
 		EndDrawing();
@@ -228,36 +221,6 @@ int updateScreenDimensions(Rectangle *sourceRect, Rectangle *destRect, int *scre
 	return updated;
 }
 
-void AnimateText(Font f, FontInfo fi, const char *text, Vector2 pos, float size, int spacing, Color c, float time) {
-	const int anim_range = 3;
-	const float speed = 1.5f;
-
-	int p_i = 0;
-	char letter[2] = { text[p_i], '\0' };
-	int total_spacing = 0;
-	time *= speed;
-
-	while(letter[0] != '\0') {
-		float sinmod_a = sinf(p_i + time);
-		int new_x = pos.x + (p_i * spacing) + total_spacing;
-		int new_y = pos.y + sinmod_a * anim_range;
-		Color cn = (Color){ c.r, (int)(c.g * (sinmod_a)), c.b, c.a };
-		DrawTextEx(f, letter, (Vector2){ new_x, new_y }, size, 2, cn);
-		total_spacing += (fi.glyph_widths[(int)letter[0]] + spacing) / 2;
-		p_i++;
-		letter[0] = text[p_i];
-	}
-}
-
-void initFontInfo(FontInfo *fi, Font f) {
-	char letter[2] = { (char)0, '\0' };
-
-	for(int i = 0; i < 255; i++) {
-		letter[0] = (char)i;
-		fi->glyph_widths[i] = MeasureText(letter, f.baseSize);
-	}
-}
-
 void addShaderPath(ShaderManager *sm, char *newPath) {
 	if(sm->loadedShaderCount >= MAX_SHADERPATHS) {
 		printf("Error: Shader paths array is full.\n");
@@ -267,14 +230,15 @@ void addShaderPath(ShaderManager *sm, char *newPath) {
 	sm->loadedShaderCount++;
 }
 
-void initShaderManager(ShaderManager *sm, char *folderPath) {
+void initShaderManager(ShaderManager *sm, TextBox *notificationTB, char *folderPath) {
 	sm->loadedShaderCount = 0;
 	sm->currentShaderIndex = 0;
-
+	sm->loadSuccessful = true;
 	initMessageBuffer(&sm->errors);
+	sm->errorNotification = notificationTB;
 
 	if(DirectoryExists(folderPath)) {
-		FilePathList pl = LoadDirectoryFilesEx(folderPath, ".glsl", false);
+		FilePathList pl = LoadDirectoryFilesEx(folderPath, getConfigValueString("shaderFileExtension"), false);
 		for(int i = 0; i < pl.count; i++) {
 			printf("Grabbing file path: %s\n", pl.paths[i]);
 			addShaderPath(sm, pl.paths[i]);
@@ -316,8 +280,10 @@ void swapOrReloadShader(ShaderManager *sm, int index) {
 			UnloadShader(sm->current);
 			sm->current = newShader;
 			sm->currentModTime = newModTime;
+			sm->loadSuccessful = true;
 		} else {
 			printf("shader is invalid, aborting load\n");
+			sm->loadSuccessful = false;
 		}
 
 		// closing GLSL error file and redirecting stdout to console.
@@ -325,10 +291,9 @@ void swapOrReloadShader(ShaderManager *sm, int index) {
 		freopen("/dev/tty", "w", stdout);
 
 		char *errFile = LoadFileText("glerr");
-		printf("\n\nFile Contents: \n\n%s\n\n", errFile);
 		int lineCount = 0;
 		const char **errLines = TextSplit(errFile, '\n', &lineCount);
-		printf("\n Line Count: %i\n", lineCount);
+
 		for(int i = 0; errLines[i]; i++) {
 			int shaderIndex = TextFindIndex(errLines[i], "SHADER");
 			if(shaderIndex > -1) {
@@ -338,6 +303,7 @@ void swapOrReloadShader(ShaderManager *sm, int index) {
 			} else {
 				printf("?ERRLINE: %s\n", errLines[i]);
 			}
+			newNotification(sm->errorNotification, errFile);
 		}
 	}
 }
@@ -354,7 +320,6 @@ void rescanDirectory(ShaderManager *sm, char *folderPath) {
 	if(DirectoryExists(folderPath)) {
 		FilePathList pl = LoadDirectoryFilesEx(folderPath, ".glsl", false);
 		for(int i = 0; i < pl.count; i++) {
-			printf("Grabbing file path: %s\n", pl.paths[i]);
 			addShaderPath(sm, pl.paths[i]);
 		}
 	}
@@ -374,39 +339,6 @@ void decShaderIndex(ShaderManager *sm) {
 		return;
 	}
 	swapOrReloadShader(sm, newIndex);
-}
-
-void initColourAnimation(ColourAnimation *ca, Color *toAnimate, float duration, Color final, InterpType it) {
-	ca->c = toAnimate;
-	ca->currentTime = 0.0f;
-	ca->doneThreshold = 0.001;
-	ca->final = final;
-	ca->duration = duration;
-	ca->initial = *toAnimate;
-	ca->it = it;
-	ca->running = false;
-	ca->increment = (Color){
-		(int)((ca->final.r - ca->initial.r) / duration),
-		(int)((ca->final.g - ca->initial.g) / duration),
-		(int)((ca->final.b - ca->initial.b) / duration),
-		(int)((ca->final.a - ca->initial.a) / duration)
-	};
-}
-
-void animateColour(ColourAnimation *ca, float timeDelta) {
-	if(ca->running) {
-		ca->currentTime += timeDelta;
-		if(ca->currentTime > ca->duration) {
-			ca->running = false;
-			ca->currentTime = 0.0f;
-			*ca->c = ca->final;
-		} else {
-			ca->c->r += (int)(ca->increment.r * timeDelta);
-			ca->c->g += (int)(ca->increment.g * timeDelta);
-			ca->c->b += (int)(ca->increment.b * timeDelta);
-			ca->c->a += (int)(ca->increment.a * timeDelta);
-		}
-	}
 }
 
 void initMessageBuffer(MessageBuffer *mb) {

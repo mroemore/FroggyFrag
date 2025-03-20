@@ -9,7 +9,14 @@
 
 typedef void (*TimerCallback)(void *data);
 
+typedef enum {
+	TT_ONCE,
+	TT_REPEATING,
+	TT_LOOPING
+} TimerType;
+
 typedef struct {
+	TimerType type;
 	float duration;
 	float elapsed;
 	bool running;
@@ -26,7 +33,7 @@ typedef struct {
 } TimerList;
 
 void initTimerList();
-Timer *createTimer(float duration, TimerCallback tc, void *data);
+Timer *createTimer(TimerType type, float duration, TimerCallback tc, void *data);
 void startTimer(Timer *t);
 void startTimerCallback(void *data);
 void tickTimers(float interval);
