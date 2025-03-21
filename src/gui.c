@@ -115,6 +115,24 @@ void newNotification(TextBox *tb, char *newText) {
 	triggerNotificationFade(tb);
 }
 
+AnimatedImage *createAnimatedImage(const char *imagePath, Vector2 pos, float scale, float rotation) {
+	AnimatedImage *img = (AnimatedImage *)malloc(sizeof(AnimatedImage));
+	Image tmp = LoadImage(imagePath);
+	img->t = LoadTextureFromImage(tmp);
+	img->scale = scale;
+	img->rotation = rotation;
+	img->aspectRatio = (float)tmp.width / (float)tmp.height;
+	img->bounds = (Rectangle){ pos.x, pos.y, (float)tmp.width * scale, (float)tmp.height * scale };
+	UnloadImage(tmp);
+
+	return img;
+}
+
+void drawAnimatedImage(void *self) {
+	AnimatedImage *img = (AnimatedImage *)self;
+	DrawTextureEx(img->t, (Vector2){ img->bounds.x, img->bounds.y }, img->rotation, img->scale, WHITE);
+}
+
 void toggleTextBoxVisibilityCB(void *textBox) {
 	TextBox *tb = (TextBox *)textBox;
 	((Drawable *)tb)->visible = !((Drawable *)tb)->visible;

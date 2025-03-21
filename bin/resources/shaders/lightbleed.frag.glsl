@@ -34,7 +34,8 @@ vec4 get_adj_colour_sum(sampler2D tex, vec2 tc, vec2 pxSize, float lumthreshold,
             float l = lum(adjacentPx.xyz);
             l = smoothstep(0.3, 0.5, l);
             //count += 0.5 + l;
-            outVec.xyz += adjacentPx.xyz * ((float(abs(i) + abs(j)) / float(radius * 2)) * (l)); //* (flicker + .75) ;
+            outVec.xyz += adjacentPx.xyz * (
+                    (float(abs(i) + abs(j)) / float(radius * 2)) * (l)); //* (flicker + .75) ;
         }
     }
 
