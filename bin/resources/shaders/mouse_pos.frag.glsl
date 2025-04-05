@@ -13,7 +13,11 @@ uniform vec2 mousePosition;
 void main()
 {
     // Texel color fetching from texture sampler
+    vec2 scaledMousePos = vec2(mousePosition.x / windowResolution.x, mousePosition.y / windowResolution.y);
     vec4 texelColor = texture2D(texture0, fragTexCoord);
+    if (distance(scaledMousePos, fragTexCoord) < 0.01) {
+        texelColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
     // NOTE: Implement here your fragment shader code
     gl_FragColor = texelColor;
 }

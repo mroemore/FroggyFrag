@@ -17,7 +17,8 @@ typedef enum {
 
 typedef struct {
 	TimerType type;
-	float duration;
+	int startFrameCount;
+	int durationFrames;
 	float elapsed;
 	bool running;
 	bool enabled;
@@ -33,10 +34,12 @@ typedef struct {
 } TimerList;
 
 void initTimerList();
-Timer *createTimer(TimerType type, float duration, TimerCallback tc, void *data);
+uint32_t getFrameCount();
+void incrementFrameCount();
+Timer *createTimer(TimerType type, int durationFrames, TimerCallback tc, void *data);
 void startTimer(Timer *t);
 void startTimerCallback(void *data);
-void tickTimers(float interval);
+void tickTimers(int frameCount);
 
 void printTimerListStats(char *eventText);
 

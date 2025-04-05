@@ -13,10 +13,10 @@ TEST_TARGET = $(OUT_DIR)/$(TARGET)_test
 
 SRCS = 	$(SRC_DIR)/main.c \
 		$(SRC_DIR)/cJSON.c \
-		$(SRC_DIR)/timer.c \
 		$(SRC_DIR)/conf.c \
-		$(SRC_DIR)/animation.c \
+		$(SRC_DIR)/anim2.c \
 		$(SRC_DIR)/callback.c \
+		$(SRC_DIR)/ease.c \
 		$(SRC_DIR)/gui.c
 
 OBJS = $(SRCS:.c=.o)

@@ -1,4 +1,4 @@
-INFO: FILEIO: [resources/shaders/lightbleed.frag.glsl] Text file loaded successfully
-INFO: SHADER: [ID 22] Fragment shader compiled successfully
-INFO: SHADER: [ID 23] Program shader loaded successfully
-INFO: SHADER: [ID 21] Unloaded shader program data from VRAM (GPU)
+INFO: FILEIO: [resources/shaders/mouse_pos.frag.glsl] Text file loaded successfully
+INFO: SHADER: [ID 12] Fragment shader compiled successfully
+INFO: SHADER: [ID 13] Program shader loaded successfully
+INFO: SHADER: [ID 11] Unloaded shader program data from VRAM (GPU)

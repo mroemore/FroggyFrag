@@ -10,25 +10,11 @@
 
 #include "raylib.h"
 #include "conf.h"
-#include "timer.h"
-#include "animation.h"
+#include "anim2.h"
 #include "gui.h"
 
 #define MAX_SHADERPATHS 256
 #define MAX_IMAGEPATHS 256
-#define MAX_MESSAGE_BUFFER_LINES 512
-#define MAX_MESSAGE_LENGTH 1024
-
-typedef struct {
-	Font *font;
-	uint8_t glyph_widths[255];
-} FontInfo;
-
-typedef struct {
-	char *messages[MAX_MESSAGE_BUFFER_LINES];
-	uint16_t count;
-	uint16_t index;
-} MessageBuffer;
 
 typedef struct {
 	Shader current;
@@ -38,24 +24,12 @@ typedef struct {
 	uint16_t loadedShaderCount;
 	uint16_t currentShaderIndex;
 	bool loadSuccessful;
-	MessageBuffer errors;
-	TextBox *errorNotification;
+	MessageBuffer *errors;
+	TextBox *notification;
 } ShaderManager;
 
-typedef struct {
-	bool running;
-	float duration;
-	float currentTime;
-	Color *c;
-	Color initial;
-	Color final;
-	Color increment;
-	InterpType it;
-	float doneThreshold;
-} ColourAnimation;
-
 // window resize functions
-int updateScreenDimensions(Rectangle *sourceRect, Rectangle *destRect, int *screenWidth, int *screenHeight, float *virtualRatio);
+bool updateScreenDimensions(Rectangle *sourceRect, Rectangle *destRect, int *screenWidth, int *screenHeight, float *virtualRatio);
 
 // ShaderManager functions
 void addShaderPath(ShaderManager *sm, char *newPath);
@@ -71,14 +45,17 @@ void redirect_stdout_to_file(const char *filename);
 // message buffer functions
 void initMessageBuffer(MessageBuffer *mb);
 void pushMessage(MessageBuffer *mb, const char *msg);
-void drawMessageBuffer(MessageBuffer *mb, Font f, Vector2 pos, int fontSize);
+
+// utility & QOL functions
+void screenshot(ShaderManager *sm);
 
 int main(void) {
 	initGlobalConf();
 
 	int screenWidth = getConfigValueInt("screenW");
 	int screenHeight = getConfigValueInt("screenW");
-
+	initRootDrawable(screenWidth, screenHeight);
+	initAnimationManager();
 	const int virtualScreenWidth = 320;
 	const int virtualScreenHeight = 240;
 	float virtualRatio = (float)screenWidth / (float)virtualScreenWidth;
@@ -113,12 +90,13 @@ int main(void) {
 	int loadedShaderCount = 0;
 	int selectedShader = 0;
 	ShaderManager sm;
-	TextBox *notificationTB = createNotificationTextBox(10, 10, 750, 75, "default", (Color){ 0, 0, 0, 170 }, (Color){ 200, 200, 200, 200 });
+	TextBox *notificationTB = createSettingsNotificationBox(10, -50, 400, 50, "default", (Color){ 36, 36, 35, 200 }, (Color){ 245, 203, 92, 200 });
+	addDrawableToRoot((Drawable *)notificationTB);
 	initShaderManager(&sm, notificationTB, getConfigValueString("shaderFolder"));
 
 	float windowResolution[2] = { (float)screenWidth, (float)screenHeight };
-
-	// TextBox *ttb = createNotificationTextBox(10, 10, 100, 100, "Hello,\n there.", (Color){ 0, 0, 0, 170 }, (Color){ 200, 200, 200, 200 });
+	float mousePosition[2] = { (float)screenWidth / 2, (float)screenHeight / 2 };
+	// TextBox *ptb = createPopupTextBox(100, 100, 100, 100, "Hello,\n there.", (Color){ 0, 0, 0, 170 }, (Color){ 200, 200, 200, 200 });
 
 	float reloadTimer = 0.0;
 	bool drawConsole = false;
@@ -126,9 +104,10 @@ int main(void) {
 	float reloadCheckInterval = getConfigValueFloat("reloadCheckInterval");
 	bool autoReload = getConfigValueBool("autoReload");
 	SetTargetFPS(60);
-
+	double now = GetTime();
 	while(!WindowShouldClose()) // Detect window close button or ESC key
 	{
+		float time = GetTime();
 		frameTime = GetFrameTime();
 		reloadTimer += frameTime;
 		if(reloadTimer >= reloadCheckInterval && sm.loadSuccessful) {
@@ -141,6 +120,9 @@ int main(void) {
 			windowResolution[1] = (float)screenHeight;
 		}
 
+		mousePosition[0] = GetMouseX();
+		mousePosition[1] = windowResolution[1] - GetMouseY();
+
 		if(IsKeyReleased(KEY_R)) {
 			swapOrReloadShader(&sm, sm.currentShaderIndex);
 		}
@@ -151,18 +133,19 @@ int main(void) {
 			decShaderIndex(&sm);
 		}
 		if(IsKeyReleased(KEY_Q)) {
-			drawConsole = !drawConsole;
+			toggleMessageBufferVisibility(sm.errors);
 		}
 		if(IsKeyReleased(KEY_A)) {
 			autoReload = !autoReload;
+			autoReload ? newSettingsInfo(sm.notification, "auto reload enabled.") : newSettingsInfo(sm.notification, "auto reload disabled.");
 		}
 		if(IsKeyReleased(KEY_F5)) {
 			rescanDirectory(&sm, getConfigValueString("shaderFolder"));
 		}
+		if(IsKeyReleased(KEY_S)) {
+			screenshot(&sm);
+		}
 
-		float timeDelta = GetFrameTime();
-
-		float time = GetTime();
 		BeginTextureMode(target);
 		BeginMode2D(worldSpaceCamera);
 		DrawTexture(bgTex, 0, 0, GRAY);
@@ -173,34 +156,28 @@ int main(void) {
 		ClearBackground(WHITE);
 		BeginShaderMode(sm.current);
 		SetShaderValue(sm.current, GetShaderLocation(sm.current, "iTime"), &time, SHADER_UNIFORM_FLOAT);
+		SetShaderValue(sm.current, GetShaderLocation(sm.current, "mousePosition"), &mousePosition, SHADER_UNIFORM_VEC2);
 
 		SetShaderValue(sm.current, GetShaderLocation(sm.current, "windowResolution"), &windowResolution, SHADER_UNIFORM_VEC2);
 		DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
 		EndShaderMode();
 
-		// DrawRectangle(2, 2, 600, 100, infoBgColour);
-		// DrawTextEx(fontSystem, TextFormat("Screen resolution: %ix%i", screenWidth, screenHeight), (Vector2){ 10, 10 }, 14, 2, infoTxtColour);
-		// DrawTextEx(fontSystem, TextFormat("World resolution: %ix%i", virtualScreenWidth, virtualScreenHeight), (Vector2){ 10, 34 }, 14, 2, infoTxtColour);
-		// DrawTextEx(fontSystem, TextFormat("Current Shader: [%i/%i]%s", sm.currentShaderIndex, sm.loadedShaderCount, sm.shaderPaths[sm.currentShaderIndex]), (Vector2){ 10, 50 }, 14, 2, infoTxtColour);
-		// DrawTextEx(fontSystem, "Keys: H: help. R: reload shader, A:auto-reload =: next shader, -:prev shader, Esc: quit", (Vector2){ 10, 68 }, 14, 2, infoTxtColour);
-
 		if(drawConsole) {
-			drawMessageBuffer(&sm.errors, fontSystem, (Vector2){ 10, 10 }, 20);
 		}
-		tickAnimations(frameTime);
-		tickTimers(frameTime);
-		drawItems();
+		updateDrawables();
+		tickManagedAnimations();
+		drawAll();
 		DrawFPS(GetScreenWidth() - 95, 10);
 		EndDrawing();
 	}
 }
 
-int updateScreenDimensions(Rectangle *sourceRect, Rectangle *destRect, int *screenWidth, int *screenHeight, float *virtualRatio) {
+bool updateScreenDimensions(Rectangle *sourceRect, Rectangle *destRect, int *screenWidth, int *screenHeight, float *virtualRatio) {
 	int tmpW = GetScreenWidth();
 	int tmpH = GetScreenHeight();
-	int updated = 0;
+	bool updated = false;
 	if(*screenWidth != tmpW || *screenHeight != tmpH) {
-		updated = 1;
+		updated = true;
 		*screenWidth = tmpW;
 		*screenHeight = tmpH;
 		*virtualRatio = (float)*screenWidth / (float)sourceRect->width;
@@ -210,6 +187,36 @@ int updateScreenDimensions(Rectangle *sourceRect, Rectangle *destRect, int *scre
 		destRect->height = *screenHeight + (*virtualRatio * 2);
 	}
 	return updated;
+}
+
+void screenshot(ShaderManager *sm) {
+	if(sm->loadedShaderCount <= 0) {
+		return;
+	}
+	const char *originalWorkingDirectory = strdup(GetWorkingDirectory());
+
+	bool chDirSuccess = ChangeDirectory(getConfigValueString("screenshotsFolder"));
+	if(chDirSuccess) {
+		int count = 0;
+		const char **currentShaderName = TextSplit(sm->shaderPaths[sm->currentShaderIndex], '/', &count);
+
+		int screenshotIndex = 0;
+		char screenshotFileName[255];
+		snprintf(screenshotFileName, 255, "%s_%i.png", currentShaderName[count - 1], screenshotIndex);
+
+		while(FileExists(screenshotFileName)) {
+			screenshotIndex++;
+			snprintf(screenshotFileName, 255, "%s_%i.png", currentShaderName[count - 1], screenshotIndex);
+		}
+		TakeScreenshot(screenshotFileName);
+		char settingsMessage[255];
+		snprintf(settingsMessage, 255, "Screenshot \"%s\" saved!", screenshotFileName);
+		newSettingsInfo(sm->notification, settingsMessage);
+
+		ChangeDirectory(originalWorkingDirectory);
+	} else {
+		return;
+	}
 }
 
 void addShaderPath(ShaderManager *sm, char *newPath) {
@@ -225,8 +232,9 @@ void initShaderManager(ShaderManager *sm, TextBox *notificationTB, char *folderP
 	sm->loadedShaderCount = 0;
 	sm->currentShaderIndex = 0;
 	sm->loadSuccessful = true;
-	initMessageBuffer(&sm->errors);
-	sm->errorNotification = notificationTB;
+	sm->errors = createMessageBuffer(NULL, 10, 10, 800, 800, BLACK, WHITE, getConfigValueString("systemFont"), 14);
+	addDrawableToRoot((Drawable *)sm->errors);
+	sm->notification = notificationTB;
 
 	if(DirectoryExists(folderPath)) {
 		FilePathList pl = LoadDirectoryFilesEx(folderPath, getConfigValueString("shaderFileExtension"), false);
@@ -269,6 +277,10 @@ void swapOrReloadShader(ShaderManager *sm, int index) {
 		Shader newShader = LoadShader(0, sm->shaderPaths[sm->currentShaderIndex]);
 		if(IsShaderValid(newShader)) {
 			UnloadShader(sm->current);
+			char settingsMessage[255];
+			snprintf(settingsMessage, 255, "Shader \"%s\" loaded.", sm->shaderPaths[sm->currentShaderIndex]);
+			newSettingsInfo(sm->notification, settingsMessage);
+
 			sm->current = newShader;
 			sm->currentModTime = newModTime;
 			sm->loadSuccessful = true;
@@ -290,11 +302,11 @@ void swapOrReloadShader(ShaderManager *sm, int index) {
 			if(shaderIndex > -1) {
 				const char *msg = &errLines[i][shaderIndex];
 				printf("!ERRLINE: %s\n", msg);
-				pushMessage(&sm->errors, msg);
+				pushMessage(sm->errors, msg);
 			} else {
 				printf("?ERRLINE: %s\n", errLines[i]);
 			}
-			newNotification(sm->errorNotification, errFile);
+			// newNotification(sm->errorNotification, errFile);
 		}
 	}
 }
@@ -332,11 +344,6 @@ void decShaderIndex(ShaderManager *sm) {
 	swapOrReloadShader(sm, newIndex);
 }
 
-void initMessageBuffer(MessageBuffer *mb) {
-	mb->count = 0;
-	mb->index = 0;
-}
-
 void pushMessage(MessageBuffer *mb, const char *msg) {
 	if(strlen(msg) < MAX_MESSAGE_LENGTH) {
 		mb->index++;
@@ -348,13 +355,5 @@ void pushMessage(MessageBuffer *mb, const char *msg) {
 		}
 		mb->messages[mb->index] = strdup(msg);
 		printf("Adding: '%s'\n", mb->messages[mb->index]);
-	}
-}
-
-void drawMessageBuffer(MessageBuffer *mb, Font f, Vector2 pos, int fontSize) {
-	for(int i = mb->count - 1; i > 0; i--) {
-		int index = (mb->index - i) % MAX_MESSAGE_BUFFER_LINES;
-		DrawRectangle(pos.x, pos.y + i * (fontSize + 2), 600, 18, (Color){ 0, 0, 0, 175 });
-		DrawTextEx(f, mb->messages[index], (Vector2){ pos.x, pos.y + i * (fontSize + 2) }, fontSize, 2, (Color){ 255, 255, 255, 255 });
 	}
 }
