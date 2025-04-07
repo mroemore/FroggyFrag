@@ -3,6 +3,8 @@
 
 # FroggyFrag
 ![example useage video](https://github.com/user-attachments/assets/37c5f8d7-e60d-4e12-80be-fd996408d383)
+
+
 An OpenGL fragment shader preview tool, for assisting in shader development.
 
 ## Build Instructions
