@@ -26,7 +26,7 @@ Edit the ``config.json`` file and restart the application to change these settin
 - **systemFontPath** : path to the default system font.
 - **shaderFolder** : path to the folder which contains your shaders.
 - **backgroundImagePath** : path to the default background image.
-- **screenshotsFolder** : default save location for screenshots. **[NOT YET IMPLEMENTED]**
+- **screenshotsFolder** : default save location for screenshots.
 - **imagesFolder** : default location for image resources which shaders can be rendered over.
 - **autoReload** : set this to ``false`` if you want to manually reload shaders.
 - **reloadCheckInterval** : a value in seconds after which the application will check for changes in the currently selected shader file.
@@ -38,4 +38,3 @@ Edit the ``config.json`` file and restart the application to change these settin
 - Keybindings for cycling through background images.
 - Aspect ratio settings.
 - Config files for customization of shader variables.
-- Screenshots. 
