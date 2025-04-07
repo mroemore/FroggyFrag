@@ -10,7 +10,7 @@
 
 #include "raylib.h"
 #include "conf.h"
-#include "anim2.h"
+#include "animation.h"
 #include "gui.h"
 
 #define MAX_SHADERPATHS 256

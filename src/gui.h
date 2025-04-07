@@ -2,7 +2,7 @@
 #define GUI_H
 
 #include <stdint.h>
-#include "anim2.h"
+#include "animation.h"
 #include "raylib.h"
 
 typedef struct Drawable Drawable;

@@ -1,6 +1,7 @@
-#include "anim2.h"
+#include "animation.h"
 
 #include <stdio.h>
+
 AnimationManager am;
 int frameCounter = 0;
 

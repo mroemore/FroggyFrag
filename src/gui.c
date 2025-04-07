@@ -7,7 +7,7 @@
 #include <raylib.h>
 
 #include "conf.h"
-#include "anim2.h"
+#include "animation.h"
 #include "ease.h"
 
 Drawable rootElement;
