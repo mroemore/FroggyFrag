@@ -50,10 +50,16 @@ void pushMessage(MessageBuffer *mb, const char *msg);
 void screenshot(ShaderManager *sm);
 
 int main(void) {
+	// Change to executable's directory so resources load correctly regardless of where app is run from
+	const char *appDir = GetApplicationDirectory();
+	if(appDir) {
+		ChangeDirectory(appDir);
+	}
+
 	initGlobalConf();
 
 	int screenWidth = getConfigValueInt("screenW");
-	int screenHeight = getConfigValueInt("screenW");
+	int screenHeight = getConfigValueInt("screenH");
 	initRootDrawable(screenWidth, screenHeight);
 	initAnimationManager();
 	const int virtualScreenWidth = 320;
@@ -63,10 +69,14 @@ int main(void) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 	InitWindow(screenWidth, screenHeight, "Shader Preview Tool");
 
-	Font fontSystem = LoadFont(getConfigValueString("systemFontPath"));
+	char *fontPath = getConfigValueString("systemFontPath");
+	Font fontSystem = LoadFont(fontPath);
+	free(fontPath);
 	SetTextLineSpacing(8);
 
-	Image bg = LoadImage(getConfigValueString("backgroundImagePath"));
+	char *bgPath = getConfigValueString("backgroundImagePath");
+	Image bg = LoadImage(bgPath);
+	free(bgPath);
 	Texture2D bgTex = LoadTextureFromImage(bg);
 	UnloadImage(bg);
 
@@ -92,7 +102,15 @@ int main(void) {
 	ShaderManager sm;
 	TextBox *notificationTB = createSettingsNotificationBox(10, -50, 400, 50, "default", (Color){ 36, 36, 35, 200 }, (Color){ 245, 203, 92, 200 });
 	addDrawableToRoot((Drawable *)notificationTB);
-	initShaderManager(&sm, notificationTB, getConfigValueString("shaderFolder"));
+	char *shaderFolder = getConfigValueString("shaderFolder");
+	initShaderManager(&sm, notificationTB, shaderFolder);
+	free(shaderFolder);
+
+	// If no shaders loaded, use default shader to prevent crash
+	if(sm.loadedShaderCount == 0) {
+		sm.current = LoadShader(0, 0); // Default raylib shader
+		sm.loadSuccessful = true;
+	}
 
 	float windowResolution[2] = { (float)screenWidth, (float)screenHeight };
 	float mousePosition[2] = { (float)screenWidth / 2, (float)screenHeight / 2 };
@@ -154,13 +172,18 @@ int main(void) {
 
 		BeginDrawing();
 		ClearBackground(WHITE);
-		BeginShaderMode(sm.current);
-		SetShaderValue(sm.current, GetShaderLocation(sm.current, "iTime"), &time, SHADER_UNIFORM_FLOAT);
-		SetShaderValue(sm.current, GetShaderLocation(sm.current, "mousePosition"), &mousePosition, SHADER_UNIFORM_VEC2);
+		if(sm.loadSuccessful && IsShaderValid(sm.current)) {
+			BeginShaderMode(sm.current);
+			SetShaderValue(sm.current, GetShaderLocation(sm.current, "iTime"), &time, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(sm.current, GetShaderLocation(sm.current, "mousePosition"), &mousePosition, SHADER_UNIFORM_VEC2);
 
-		SetShaderValue(sm.current, GetShaderLocation(sm.current, "windowResolution"), &windowResolution, SHADER_UNIFORM_VEC2);
-		DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
-		EndShaderMode();
+			SetShaderValue(sm.current, GetShaderLocation(sm.current, "windowResolution"), &windowResolution, SHADER_UNIFORM_VEC2);
+			DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
+			EndShaderMode();
+		} else {
+			// Draw without shader if shader is invalid
+			DrawTexturePro(target.texture, sourceRec, destRec, origin, 0.0f, WHITE);
+		}
 
 		if(drawConsole) {
 		}
@@ -193,9 +216,16 @@ void screenshot(ShaderManager *sm) {
 	if(sm->loadedShaderCount <= 0) {
 		return;
 	}
-	const char *originalWorkingDirectory = strdup(GetWorkingDirectory());
+	char *originalWorkingDirectory = strdup(GetWorkingDirectory());
+	if(originalWorkingDirectory == NULL) {
+		fprintf(stderr, "ERROR: Failed to allocate memory for working directory\n");
+		return;
+	}
 
-	bool chDirSuccess = ChangeDirectory(getConfigValueString("screenshotsFolder"));
+	char *screenshotsFolder = getConfigValueString("screenshotsFolder");
+	bool chDirSuccess = ChangeDirectory(screenshotsFolder);
+	free(screenshotsFolder);
+
 	if(chDirSuccess) {
 		int count = 0;
 		const char **currentShaderName = TextSplit(sm->shaderPaths[sm->currentShaderIndex], '/', &count);
@@ -214,9 +244,8 @@ void screenshot(ShaderManager *sm) {
 		newSettingsInfo(sm->notification, settingsMessage);
 
 		ChangeDirectory(originalWorkingDirectory);
-	} else {
-		return;
 	}
+	free(originalWorkingDirectory);
 }
 
 void addShaderPath(ShaderManager *sm, char *newPath) {
@@ -224,7 +253,12 @@ void addShaderPath(ShaderManager *sm, char *newPath) {
 		printf("Error: Shader paths array is full.\n");
 		return;
 	}
-	sm->shaderPaths[sm->loadedShaderCount] = strdup(newPath);
+	char *pathCopy = strdup(newPath);
+	if(pathCopy == NULL) {
+		fprintf(stderr, "ERROR: Failed to allocate memory for shader path\n");
+		return;
+	}
+	sm->shaderPaths[sm->loadedShaderCount] = pathCopy;
 	sm->loadedShaderCount++;
 }
 
@@ -232,16 +266,21 @@ void initShaderManager(ShaderManager *sm, TextBox *notificationTB, char *folderP
 	sm->loadedShaderCount = 0;
 	sm->currentShaderIndex = 0;
 	sm->loadSuccessful = true;
-	sm->errors = createMessageBuffer(NULL, 10, 10, 800, 800, BLACK, WHITE, getConfigValueString("systemFont"), 14);
+	char *fontPath = getConfigValueString("systemFontPath");
+	sm->errors = createMessageBuffer(NULL, 10, 10, 800, 800, BLACK, WHITE, fontPath, 14);
+	free(fontPath);
 	addDrawableToRoot((Drawable *)sm->errors);
 	sm->notification = notificationTB;
 
 	if(DirectoryExists(folderPath)) {
-		FilePathList pl = LoadDirectoryFilesEx(folderPath, getConfigValueString("shaderFileExtension"), false);
+		char *shaderExt = getConfigValueString("shaderFileExtension");
+		FilePathList pl = LoadDirectoryFilesEx(folderPath, shaderExt, false);
+		free(shaderExt);
 		for(int i = 0; i < pl.count; i++) {
 			printf("Grabbing file path: %s\n", pl.paths[i]);
 			addShaderPath(sm, pl.paths[i]);
 		}
+		UnloadDirectoryFiles(pl);
 	}
 	if(sm->loadedShaderCount > 0) {
 		sm->current = LoadShader(0, sm->shaderPaths[0]);
@@ -290,23 +329,36 @@ void swapOrReloadShader(ShaderManager *sm, int index) {
 		}
 
 		// closing GLSL error file and redirecting stdout to console.
+		fflush(stdout);
 		fclose(err);
-		freopen("/dev/tty", "w", stdout);
+		FILE *tty = NULL;
+#if defined(__linux__) || defined(__APPLE__)
+		tty = freopen("/dev/tty", "w", stdout);
+#elif defined(_WIN32)
+		tty = freopen("CONOUT$", "w", stdout);
+#endif
+		if(!tty) {
+			// If we can't reopen tty, stderr still works
+			fprintf(stderr, "WARNING: Could not reopen stdout, using stderr\n");
+		}
 
 		char *errFile = LoadFileText("glerr");
-		int lineCount = 0;
-		const char **errLines = TextSplit(errFile, '\n', &lineCount);
+		if(errFile) {
+			int lineCount = 0;
+			const char **errLines = TextSplit(errFile, '\n', &lineCount);
 
-		for(int i = 0; errLines[i]; i++) {
-			int shaderIndex = TextFindIndex(errLines[i], "SHADER");
-			if(shaderIndex > -1) {
-				const char *msg = &errLines[i][shaderIndex];
-				printf("!ERRLINE: %s\n", msg);
-				pushMessage(sm->errors, msg);
-			} else {
-				printf("?ERRLINE: %s\n", errLines[i]);
+			for(int i = 0; i < lineCount && errLines[i]; i++) {
+				if(strlen(errLines[i]) == 0) continue;
+				int shaderIndex = TextFindIndex(errLines[i], "SHADER");
+				if(shaderIndex > -1) {
+					const char *msg = &errLines[i][shaderIndex];
+					fprintf(tty ? stdout : stderr, "!ERRLINE: %s\n", msg);
+					pushMessage(sm->errors, msg);
+				} else {
+					fprintf(tty ? stdout : stderr, "?ERRLINE: %s\n", errLines[i]);
+				}
 			}
-			// newNotification(sm->errorNotification, errFile);
+			UnloadFileText(errFile);
 		}
 	}
 }
@@ -321,7 +373,9 @@ void rescanDirectory(ShaderManager *sm, char *folderPath) {
 	sm->currentShaderIndex = 0;
 
 	if(DirectoryExists(folderPath)) {
-		FilePathList pl = LoadDirectoryFilesEx(folderPath, ".glsl", false);
+		char *extension = getConfigValueString("shaderFileExtension");
+		FilePathList pl = LoadDirectoryFilesEx(folderPath, extension, false);
+		free(extension);
 		for(int i = 0; i < pl.count; i++) {
 			addShaderPath(sm, pl.paths[i]);
 		}
@@ -352,6 +406,10 @@ void pushMessage(MessageBuffer *mb, const char *msg) {
 			mb->count++;
 		} else {
 			mb->index %= MAX_MESSAGE_BUFFER_LINES;
+		}
+		// Free existing message before overwriting
+		if(mb->messages[mb->index] != NULL) {
+			free(mb->messages[mb->index]);
 		}
 		mb->messages[mb->index] = strdup(msg);
 		printf("Adding: '%s'\n", mb->messages[mb->index]);

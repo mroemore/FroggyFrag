@@ -1,4 +1,4 @@
-INFO: FILEIO: [resources/shaders/mouse_pos.frag.glsl] Text file loaded successfully
+INFO: FILEIO: [resources/shaders/pulsing-viscera.frag.glsl] Text file loaded successfully
 INFO: SHADER: [ID 12] Fragment shader compiled successfully
 INFO: SHADER: [ID 13] Program shader loaded successfully
-INFO: SHADER: [ID 11] Unloaded shader program data from VRAM (GPU)
+INFO: SHADER: [ID 0] Unloaded shader program data from VRAM (GPU)

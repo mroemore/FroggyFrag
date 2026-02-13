@@ -43,8 +43,15 @@ void setConfigValue(Config *c, ConfigMap cm[], char *key, cJSON *jsonRoot) {
 						printf("\n\tKey: %s Value: %i\n", key, *(bool *)param);
 						break;
 					case CVT_STRING:
+						// Free old value if it exists
+						if(*(char **)param) {
+							free(*(char **)param);
+						}
 						*(char **)param = malloc(MAX_PATH_LENGTH);
-						strncpy(*(char **)param, cJSON_GetStringValue(value), MAX_PATH_LENGTH);
+						if(*(char **)param) {
+							strncpy(*(char **)param, cJSON_GetStringValue(value), MAX_PATH_LENGTH - 1);
+							(*(char **)param)[MAX_PATH_LENGTH - 1] = '\0';
+						}
 						printf("\n\tKey: %s Value: %s\n", key, *(char **)param);
 						break;
 					default:
@@ -98,13 +105,15 @@ void parseJSONConfig(Config *conf, const char *filePath) {
 static void initDefaultConf(Config *conf) {
 	conf->screenW = 1280;
 	conf->screenH = 960;
-	conf->shaderFolder = "resources/shaders";
-	conf->shaderFileExtension = ".glsl";
-	conf->backgroundImagePath = "resources/train.png";
+	conf->shaderFolder = strdup("resources/shaders");
+	conf->shaderFileExtension = strdup(".glsl");
+	conf->backgroundImagePath = strdup("resources/train.png");
+	conf->screenshotsFolder = NULL;
+	conf->imagesFolder = NULL;
 	conf->autoReload = true;
 	conf->reloadCheckInterval = 1.5;
 	conf->maintainContentAspectRatio = false;
-	conf->systemFontPath = "resources/fonts/04B_03__.TTF";
+	conf->systemFontPath = strdup("resources/fonts/04B_03__.TTF");
 	conf->initialized = true;
 	conf->copyOnDrag = false;
 }
@@ -115,6 +124,7 @@ void freeConfig(Config *conf) {
 	if(conf->imagesFolder) free(conf->imagesFolder);
 	if(conf->backgroundImagePath) free(conf->backgroundImagePath);
 	if(conf->systemFontPath) free(conf->systemFontPath);
+	if(conf->shaderFileExtension) free(conf->shaderFileExtension);
 	conf->initialized = false;
 }
 
@@ -155,20 +165,26 @@ float getConfigValueFloat(char *key) {
 }
 char *getConfigValueString(char *key) {
 	char *result = malloc(MAX_PATH_LENGTH);
+	if(!result) return NULL;
+	result[0] = '\0';
 	for(int i = 0; i < CONFIG_PARAMETER_COUNT; i++) {
 		if(strcmp(configMap[i].key, key) == 0) {
 			if(configMap[i].type == CVT_STRING) {
 				void *param = (void *)((char *)&gc + configMap[i].offset);
-				strncpy(result, *(char **)param, MAX_PATH_LENGTH);
+				char *value = *(char **)param;
+				if(value) {
+					strncpy(result, value, MAX_PATH_LENGTH - 1);
+					result[MAX_PATH_LENGTH - 1] = '\0';
+				}
 			}
-			break;
+			return result;
 		}
 	}
 	return result;
 }
 
 bool getConfigValueBool(char *key) {
-	bool result = NULL;
+	bool result = false;
 	for(int i = 0; i < CONFIG_PARAMETER_COUNT; i++) {
 		if(strcmp(configMap[i].key, key) == 0) {
 			if(configMap[i].type == CVT_BOOLEAN) {

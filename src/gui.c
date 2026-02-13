@@ -177,24 +177,24 @@ TextBox *createSettingsNotificationBox(int x, int y, int w, int h, char *text, C
 	AnimationChainGroup *popUp = (AnimationChainGroup *)malloc(sizeof(AnimationChainGroup));
 	initAnimationChainGroup(popUp, ACGP_SEQUENTIAL);
 
-	AnimationChain opacityFade;
-	initAnimationChain(&opacityFade, ACPT_ONCE, restartBehaviour);
+	AnimationChain *opacityFade = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(opacityFade, ACPT_ONCE, restartBehaviour);
 	unsigned char opacityDest = 0;
-	addAnimation(&opacityFade, 30, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityDest, true);
-	addRest(&opacityFade, 60);
-	addAnimation(&opacityFade, 30, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityDest, false);
-	setCustomRetrigAnimation(&opacityFade, 3, ATT_UCHAR, IT_LINEAR, &d->cDefault.a, &opacityDest, false);
-	addChainToGroup(popUp, opacityFade);
+	addAnimation(opacityFade, 30, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityDest, true);
+	addRest(opacityFade, 60);
+	addAnimation(opacityFade, 30, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityDest, false);
+	setCustomRetrigAnimation(opacityFade, 3, ATT_UCHAR, IT_LINEAR, &d->cDefault.a, &opacityDest, false);
+	addChainToGroup(popUp, *opacityFade);
 	d->cDefault.a = 0;
 
-	AnimationChain positionSlide;
-	initAnimationChain(&positionSlide, ACPT_ONCE, restartBehaviour);
+	AnimationChain *positionSlide = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(positionSlide, ACPT_ONCE, restartBehaviour);
 	float yPosDest = 10.0;
-	addAnimation(&positionSlide, 30, ATT_FLOAT, IT_QUINT_OUT, &d->offset.y, &yPosDest, false);
-	addRest(&positionSlide, 60);
-	addAnimation(&positionSlide, 30, ATT_FLOAT, IT_QUINT_OUT, &d->offset.y, &yPosDest, true);
-	setCustomRetrigAnimation(&positionSlide, 3, ATT_FLOAT, IT_LINEAR, &d->offset.y, &yPosDest, true);
-	addChainToGroup(popUp, positionSlide);
+	addAnimation(positionSlide, 30, ATT_FLOAT, IT_QUINT_OUT, &d->offset.y, &yPosDest, false);
+	addRest(positionSlide, 60);
+	addAnimation(positionSlide, 30, ATT_FLOAT, IT_QUINT_OUT, &d->offset.y, &yPosDest, true);
+	setCustomRetrigAnimation(positionSlide, 3, ATT_FLOAT, IT_LINEAR, &d->offset.y, &yPosDest, true);
+	addChainToGroup(popUp, *positionSlide);
 
 	registerAnimationGroup(anim, popUp);
 	addAnimationGroupToManager(popUp);
@@ -206,31 +206,31 @@ TextBox *createSettingsNotificationBox(int x, int y, int w, int h, char *text, C
 	AnimationChainGroup *dancingFrog = (AnimationChainGroup *)malloc(sizeof(AnimationChainGroup));
 	initAnimationChainGroup(dancingFrog, ACGP_SEQUENTIAL);
 
-	AnimationChain frogWiggle;
-	initAnimationChain(&frogWiggle, ACPT_LOOP, CRB_DO_NOTHING);
+	AnimationChain *frogWiggle = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(frogWiggle, ACPT_LOOP, CRB_DO_NOTHING);
 	float xPosDest = 30.0;
-	addAnimation(&frogWiggle, 16, ATT_FLOAT, IT_QUINT_OUT, &fd->offset.x, &xPosDest, false);
-	addRest(&frogWiggle, 8);
-	addAnimation(&frogWiggle, 16, ATT_FLOAT, IT_QUINT_OUT, &fd->offset.x, &xPosDest, true);
-	addRest(&frogWiggle, 8);
-	addChainToGroup(dancingFrog, frogWiggle);
+	addAnimation(frogWiggle, 16, ATT_FLOAT, IT_QUINT_OUT, &fd->offset.x, &xPosDest, false);
+	addRest(frogWiggle, 8);
+	addAnimation(frogWiggle, 16, ATT_FLOAT, IT_QUINT_OUT, &fd->offset.x, &xPosDest, true);
+	addRest(frogWiggle, 8);
+	addChainToGroup(dancingFrog, *frogWiggle);
 
-	AnimationChain frogSquish;
-	initAnimationChain(&frogSquish, ACPT_LOOP, CRB_DO_NOTHING);
+	AnimationChain *frogSquish = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(frogSquish, ACPT_LOOP, CRB_DO_NOTHING);
 	int heightDest = 50;
-	addAnimation(&frogSquish, 8, ATT_INT, IT_ELASTIC_OUT, &fd->height, &heightDest, false);
-	addAnimation(&frogSquish, 8, ATT_INT, IT_ELASTIC_OUT, &fd->height, &heightDest, true);
-	addRest(&frogSquish, 8);
-	addChainToGroup(dancingFrog, frogSquish);
+	addAnimation(frogSquish, 8, ATT_INT, IT_ELASTIC_OUT, &fd->height, &heightDest, false);
+	addAnimation(frogSquish, 8, ATT_INT, IT_ELASTIC_OUT, &fd->height, &heightDest, true);
+	addRest(frogSquish, 8);
+	addChainToGroup(dancingFrog, *frogSquish);
 
-	AnimationChain frogLean;
-	initAnimationChain(&frogLean, ACPT_LOOP, CRB_DO_NOTHING);
+	AnimationChain *frogLean = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(frogLean, ACPT_LOOP, CRB_DO_NOTHING);
 	float rotationDest = 15.0;
-	addAnimation(&frogLean, 16, ATT_FLOAT, IT_CUBIC_OUT, &frog->rotation, &rotationDest, false);
-	addRest(&frogLean, 8);
-	addAnimation(&frogLean, 16, ATT_FLOAT, IT_CUBIC_OUT, &frog->rotation, &rotationDest, true);
-	addRest(&frogLean, 8);
-	addChainToGroup(dancingFrog, frogLean);
+	addAnimation(frogLean, 16, ATT_FLOAT, IT_CUBIC_OUT, &frog->rotation, &rotationDest, false);
+	addRest(frogLean, 8);
+	addAnimation(frogLean, 16, ATT_FLOAT, IT_CUBIC_OUT, &frog->rotation, &rotationDest, true);
+	addRest(frogLean, 8);
+	addChainToGroup(dancingFrog, *frogLean);
 
 	registerAnimationGroup(anim, dancingFrog);
 	addAnimationGroupToManager(dancingFrog);
@@ -262,6 +262,14 @@ void drawTextBox(void *self) {
 }
 
 void newSettingsInfo(TextBox *settingsInfoBox, const char *newText) {
+	// Free old text lines before replacing
+	if(settingsInfoBox->text) {
+		for(int i = 0; i < settingsInfoBox->lineCount; i++) {
+			free((void*)settingsInfoBox->text[i]);
+		}
+		free(settingsInfoBox->text);
+		settingsInfoBox->text = NULL;
+	}
 	populateTextBoxLines(settingsInfoBox, newText);
 	Animateable *a = (Animateable *)settingsInfoBox;
 	startManagedGroup(a->animationList[0]);
@@ -305,13 +313,17 @@ void drawAnimatedImage(void *self) {
 }
 
 MessageBuffer *createMessageBuffer(Drawable *parent, int x, int y, int w, int h, Color cBackground, Color cText, const char *fontPath, int fontSize) {
-	MessageBuffer *mb = (MessageBuffer *)malloc(sizeof(MessageBuffer));
+	MessageBuffer *mb = (MessageBuffer *)calloc(1, sizeof(MessageBuffer));
+	if(!mb) {
+		fprintf(stderr, "ERROR: createMessageBuffer could not allocate memory\n");
+		return NULL;
+	}
 	Drawable *d = (Drawable *)mb;
 	Animateable *a = (Animateable *)mb;
 	a->animationCount = 0;
 	initDrawableProperties(d, parent, x, y, w, h, cBackground, drawMessageBuffer, updateMessageBuffer);
 	mb->count = 0;
-	mb->index = 0;
+	mb->index = -1;
 	mb->fontSize = fontSize;
 	mb->lineVisibilityMod = 1.0;
 	mb->cText = cText;
@@ -323,47 +335,47 @@ MessageBuffer *createMessageBuffer(Drawable *parent, int x, int y, int w, int h,
 	AnimationChainGroup *fadeIn = (AnimationChainGroup *)malloc(sizeof(AnimationChainGroup));
 	initAnimationChainGroup(fadeIn, ACGP_SEQUENTIAL);
 
-	AnimationChain opacityIn;
-	initAnimationChain(&opacityIn, ACPT_ONCE, CRB_DO_NOTHING);
+	AnimationChain *opacityIn = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(opacityIn, ACPT_ONCE, CRB_DO_NOTHING);
 	unsigned char opacityDest = 0;
-	addAnimation(&opacityIn, 60, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityDest, false);
+	addAnimation(opacityIn, 60, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityDest, false);
 
-	AnimationChain visModIn;
-	initAnimationChain(&visModIn, ACPT_ONCE, CRB_DO_NOTHING);
+	AnimationChain *visModIn = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(visModIn, ACPT_ONCE, CRB_DO_NOTHING);
 	float visModDest = 1.0;
-	addAnimation(&visModIn, 60, ATT_UCHAR, IT_CUBIC_OUT, &mb->lineVisibilityMod, &visModDest, false);
+	addAnimation(visModIn, 60, ATT_UCHAR, IT_CUBIC_OUT, &mb->lineVisibilityMod, &visModDest, false);
 
-	AnimationChain slideIn;
-	initAnimationChain(&slideIn, ACPT_ONCE, CRB_DO_NOTHING);
+	AnimationChain *slideIn = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(slideIn, ACPT_ONCE, CRB_DO_NOTHING);
 	float xModIn = 30.0;
-	addAnimation(&slideIn, 60, ATT_UCHAR, IT_CUBIC_OUT, &d->offset.x, &xModIn, false);
+	addAnimation(slideIn, 60, ATT_UCHAR, IT_CUBIC_OUT, &d->offset.x, &xModIn, false);
 
-	addChainToGroup(fadeIn, opacityIn);
-	addChainToGroup(fadeIn, visModIn);
-	addChainToGroup(fadeIn, slideIn);
+	addChainToGroup(fadeIn, *opacityIn);
+	addChainToGroup(fadeIn, *visModIn);
+	addChainToGroup(fadeIn, *slideIn);
 
 	AnimationChainGroup *fadeOut = (AnimationChainGroup *)malloc(sizeof(AnimationChainGroup));
 	initAnimationChainGroup(fadeOut, ACGP_SEQUENTIAL);
 
-	AnimationChain opacityOut;
-	initAnimationChain(&opacityOut, ACPT_ONCE, CRB_DO_NOTHING);
+	AnimationChain *opacityOut = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(opacityOut, ACPT_ONCE, CRB_DO_NOTHING);
 	unsigned char opacityOutDest = 0;
-	addAnimation(&opacityOut, 60, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityOutDest, true);
+	addAnimation(opacityOut, 60, ATT_UCHAR, IT_CUBIC_OUT, &d->cDefault.a, &opacityOutDest, true);
 
-	AnimationChain visModOut;
-	initAnimationChain(&visModOut, ACPT_ONCE, CRB_DO_NOTHING);
+	AnimationChain *visModOut = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(visModOut, ACPT_ONCE, CRB_DO_NOTHING);
 	float visModOutDest = 1.0;
-	addAnimation(&visModOut, 60, ATT_FLOAT, IT_CUBIC_OUT, &mb->lineVisibilityMod, &visModOutDest, true);
+	addAnimation(visModOut, 60, ATT_FLOAT, IT_CUBIC_OUT, &mb->lineVisibilityMod, &visModOutDest, true);
 
-	AnimationChain slideOut;
-	initAnimationChain(&slideOut, ACPT_ONCE, CRB_DO_NOTHING);
+	AnimationChain *slideOut = (AnimationChain *)malloc(sizeof(AnimationChain));
+	initAnimationChain(slideOut, ACPT_ONCE, CRB_DO_NOTHING);
 	float xModOut = 30.0;
-	addAnimation(&slideOut, 60, ATT_FLOAT, IT_CUBIC_OUT, &d->offset.x, &xModOut, true);
+	addAnimation(slideOut, 60, ATT_FLOAT, IT_CUBIC_OUT, &d->offset.x, &xModOut, true);
 
 	d->cDefault.a = 0;
-	addChainToGroup(fadeOut, opacityOut);
-	addChainToGroup(fadeOut, visModOut);
-	addChainToGroup(fadeOut, slideOut);
+	addChainToGroup(fadeOut, *opacityOut);
+	addChainToGroup(fadeOut, *visModOut);
+	addChainToGroup(fadeOut, *slideOut);
 
 	registerAnimationGroup(a, fadeIn);
 	addAnimationGroupToManager(fadeIn);

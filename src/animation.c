@@ -176,7 +176,9 @@ void startAnimationChain(AnimationChain *ac, int currentFrameCount) {
 void resetAnimationChain(AnimationChain *ac) {
 	ac->playing = false;
 	ac->segmentIndex = 0;
-	ac->segments[0].animate(&ac->segments[0], 0.0);
+	if(ac->segmentCount > 0) {
+		ac->segments[0].animate(&ac->segments[0], 0.0);
+	}
 }
 
 void tickAnimationChain(AnimationChain *ac, int currentFrameCount) {
