@@ -69,8 +69,7 @@ typedef struct {
 	ProcessAnimation animate;
 } AnimationSegment;
 
-int getFrameCount();
-static void incrementFrameCount();
+int getFrameCount(void);
 
 void initDefaultASProperties(AnimationSegment *as, int durationFrames, AnimationSegmentType ast);
 

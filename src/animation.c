@@ -5,7 +5,7 @@
 AnimationManager am;
 int frameCounter = 0;
 
-int getFrameCount() {
+int getFrameCount(void) {
 	return frameCounter;
 }
 
@@ -35,7 +35,6 @@ void initMoveAnimationSegment(AnimationSegment *mas, int durationFrames, Animati
 				mas->orig.i = *((int *)target);
 				mas->dest.i = *((int *)dest);
 			}
-			printf("TARGET: %i, ORIGINAL: %i, DESTINATION: %i\n", *mas->target.i, mas->orig.i, mas->dest.i);
 			mas->animate = animateInt;
 			break;
 		case ATT_FLOAT:
@@ -84,10 +83,6 @@ void animateFloat(void *self, float t) {
 void animateUChar(void *self, float t) {
 	AnimationSegment *mas = (AnimationSegment *)self;
 	*mas->target.c = mas->orig.c + (unsigned char)((float)(mas->dest.c - mas->orig.c) * t);
-}
-
-bool processBlank(void *self, int frameCount) {
-	return false;
 }
 
 bool processMove(void *self, int frameCount) {

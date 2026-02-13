@@ -1,10 +1,14 @@
 #include "ease.h"
 #include <math.h>
 
-static float c4 = (2.0f * M_PI) / 3.0f;
-static float c5 = (2.0f * M_PI) / 4.5f;
-static float n1 = 7.5625f;
-static float d1 = 2.75f;
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+static const float c4 = (2.0f * (float)M_PI) / 3.0f;
+static const float c5 = (2.0f * (float)M_PI) / 4.5f;
+static const float n1 = 7.5625f;
+static const float d1 = 2.75f;
 
 float linear(float x) {
 	return x;
