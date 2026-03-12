@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinc -lraylib -lm -Llib -lGL -lrt -ldl -lX11 -lvterm -DLINUX
+CFLAGS = -Iinc -lraylib -lm -lGL -lrt -ldl -lX11 -lvterm -DLINUX
 
 DEBUG_FLAGS = -g
 RELEASE_FLAGS = -O0
