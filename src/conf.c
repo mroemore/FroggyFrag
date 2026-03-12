@@ -83,6 +83,8 @@ void parseJSONConfig(Config *conf, const char *filePath) {
 			setConfigValue(conf, configMap, "reloadCheckInterval", json);
 			setConfigValue(conf, configMap, "autoReload", json);
 			setConfigValue(conf, configMap, "maintainContentAspectRatio", json);
+			setConfigValue(conf, configMap, "shaderFileExtension", json);
+			setConfigValue(conf, configMap, "copyOnDrag", json);
 			conf->initialized = true;
 			printf("\n\nEND CONFIG PARSING\n\n");
 			cJSON_Delete(json);
@@ -168,7 +170,7 @@ char *getConfigValueString(char *key) {
 }
 
 bool getConfigValueBool(char *key) {
-	bool result = NULL;
+	bool result = false;
 	for(int i = 0; i < CONFIG_PARAMETER_COUNT; i++) {
 		if(strcmp(configMap[i].key, key) == 0) {
 			if(configMap[i].type == CVT_BOOLEAN) {

@@ -1,4 +1,4 @@
-INFO: FILEIO: [resources/shaders/bnw.frag.glsl] Text file loaded successfully
-INFO: SHADER: [ID 113] Fragment shader compiled successfully
-INFO: SHADER: [ID 114] Program shader loaded successfully
-INFO: SHADER: [ID 112] Unloaded shader program data from VRAM (GPU)
+INFO: FILEIO: [resources/shaders/lightbleed.frag.glsl] Text file loaded successfully
+INFO: SHADER: [ID 4] Fragment shader compiled successfully
+INFO: SHADER: [ID 5] Program shader loaded successfully
+INFO: SHADER: [ID 6] Unloaded shader program data from VRAM (GPU)

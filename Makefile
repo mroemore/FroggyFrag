@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinc -lraylib -lm -Llib -lGL -lrt -ldl -lX11 -DLINUX
+CFLAGS = -Iinc -lraylib -lm -Llib -lGL -lrt -ldl -lX11 -lvterm -DLINUX
 
 DEBUG_FLAGS = -g
 RELEASE_FLAGS = -O0
@@ -17,7 +17,9 @@ SRCS = 	$(SRC_DIR)/main.c \
 		$(SRC_DIR)/animation.c \
 		$(SRC_DIR)/callback.c \
 		$(SRC_DIR)/ease.c \
-		$(SRC_DIR)/gui.c
+		$(SRC_DIR)/gui.c \
+		$(SRC_DIR)/button.c \
+		$(SRC_DIR)/terminal.c
 
 OBJS = $(SRCS:.c=.o)
 
