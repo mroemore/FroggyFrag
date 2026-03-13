@@ -3,8 +3,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define SYSTEM_DATA_DIR "/usr/share/froggy-frag"
+#define APP_NAME "froggy-frag"
 
 static Config gc;
+static char xdgConfigDir[MAX_PATH_LENGTH] = {0};
+static char xdgDataDir[MAX_PATH_LENGTH] = {0};
+static char systemDataDir[MAX_PATH_LENGTH] = SYSTEM_DATA_DIR;
 
 static ConfigMap configMap[CONFIG_PARAMETER_COUNT] = {
 	{ "screenW", offsetof(Config, screenW), CVT_INT },
@@ -97,18 +106,105 @@ void parseJSONConfig(Config *conf, const char *filePath) {
 	}
 }
 
+static void initXDGPaths(void) {
+	if(xdgConfigDir[0] != '\0') return;
+
+	const char *configHome = getenv("XDG_CONFIG_HOME");
+	const char *dataHome = getenv("XDG_DATA_HOME");
+	const char *home = getenv("HOME");
+
+	if(configHome && configHome[0] != '\0') {
+		snprintf(xdgConfigDir, MAX_PATH_LENGTH, "%s/%s", configHome, APP_NAME);
+	} else if(home) {
+		snprintf(xdgConfigDir, MAX_PATH_LENGTH, "%s/.config/%s", home, APP_NAME);
+	}
+
+	if(dataHome && dataHome[0] != '\0') {
+		snprintf(xdgDataDir, MAX_PATH_LENGTH, "%s/%s", dataHome, APP_NAME);
+	} else if(home) {
+		snprintf(xdgDataDir, MAX_PATH_LENGTH, "%s/.local/share/%s", home, APP_NAME);
+	}
+}
+
+static void ensureDirExists(const char *path) {
+	struct stat st = {0};
+	if(stat(path, &st) == -1) {
+		if(mkdir(path, 0755) == 0) {
+			printf("Created directory: %s\n", path);
+		} else {
+			fprintf(stderr, "Warning: Could not create directory %s: %s\n", path, strerror(errno));
+		}
+	}
+}
+
+static bool fileExists(const char *path) {
+	struct stat st;
+	return stat(path, &st) == 0;
+}
+
+static void resolvePath(char *dest, const char *userSubdir, const char *systemSubdir, const char *fallback) {
+	initXDGPaths();
+
+	char userPath[MAX_PATH_LENGTH];
+	char systemPath[MAX_PATH_LENGTH];
+
+	if(fallback && (fileExists(fallback) || DirectoryExists(fallback))) {
+		strncpy(dest, fallback, MAX_PATH_LENGTH);
+		printf("Path resolved (fallback exists): %s\n", dest);
+		return;
+	}
+
+	if(xdgDataDir[0] != '\0' && userSubdir) {
+		snprintf(userPath, MAX_PATH_LENGTH, "%s/%s", xdgDataDir, userSubdir);
+		if(fileExists(userPath) || DirectoryExists(userPath)) {
+			strncpy(dest, userPath, MAX_PATH_LENGTH);
+			printf("Path resolved (user): %s\n", dest);
+			return;
+		}
+	}
+
+	if(systemSubdir) {
+		snprintf(systemPath, MAX_PATH_LENGTH, "%s/%s", systemDataDir, systemSubdir);
+		if(fileExists(systemPath) || DirectoryExists(systemPath)) {
+			strncpy(dest, systemPath, MAX_PATH_LENGTH);
+			printf("Path resolved (system): %s\n", dest);
+			return;
+		}
+	}
+
+	strncpy(dest, fallback, MAX_PATH_LENGTH);
+	printf("Path resolved (fallback): %s\n", dest);
+}
+
 static void initDefaultConf(Config *conf) {
 	conf->screenW = 1280;
 	conf->screenH = 960;
-	conf->shaderFolder = "resources/shaders";
 	conf->shaderFileExtension = ".glsl";
-	conf->backgroundImagePath = "resources/train.png";
 	conf->autoReload = true;
 	conf->reloadCheckInterval = 1.5;
 	conf->maintainContentAspectRatio = false;
-	conf->systemFontPath = "resources/fonts/04B_03__.TTF";
 	conf->initialized = true;
 	conf->copyOnDrag = false;
+
+	conf->shaderFolder = malloc(MAX_PATH_LENGTH);
+	conf->screenshotsFolder = malloc(MAX_PATH_LENGTH);
+	conf->imagesFolder = malloc(MAX_PATH_LENGTH);
+	conf->backgroundImagePath = malloc(MAX_PATH_LENGTH);
+	conf->systemFontPath = malloc(MAX_PATH_LENGTH);
+
+	resolvePath(conf->shaderFolder, "shaders", "shaders", "resources/shaders");
+	resolvePath(conf->imagesFolder, "images", "images", "resources/images");
+	resolvePath(conf->backgroundImagePath, "images/train.png", "images/train.png", "resources/images/train.png");
+	resolvePath(conf->systemFontPath, NULL, "fonts/Targa.ttf", "resources/fonts/Targa.ttf");
+
+	initXDGPaths();
+	if(xdgDataDir[0] != '\0') {
+		ensureDirExists(xdgDataDir);
+		snprintf(conf->screenshotsFolder, MAX_PATH_LENGTH, "%s/screenshots", xdgDataDir);
+		ensureDirExists(conf->screenshotsFolder);
+	} else {
+		strncpy(conf->screenshotsFolder, "resources/screenshots", MAX_PATH_LENGTH);
+	}
 }
 
 void freeConfig(Config *conf) {
@@ -121,8 +217,29 @@ void freeConfig(Config *conf) {
 }
 
 void initGlobalConf() {
+	initXDGPaths();
 	initDefaultConf(&gc);
-	parseJSONConfig(&gc, "conf.json");
+
+	char configPath[MAX_PATH_LENGTH];
+	bool configFound = false;
+
+	if(xdgConfigDir[0] != '\0') {
+		snprintf(configPath, MAX_PATH_LENGTH, "%s/config.json", xdgConfigDir);
+		if(fileExists(configPath)) {
+			parseJSONConfig(&gc, configPath);
+			configFound = true;
+		}
+	}
+
+	if(!configFound && fileExists("conf.json")) {
+		parseJSONConfig(&gc, "conf.json");
+		configFound = true;
+	}
+
+	if(!configFound && xdgConfigDir[0] != '\0') {
+		ensureDirExists(xdgConfigDir);
+		printf("No config found. Using defaults. Config location: %s/config.json\n", xdgConfigDir);
+	}
 }
 
 bool globalConfIsInitialised() {

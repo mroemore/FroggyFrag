@@ -390,12 +390,17 @@ void handleTerminalInput(TerminalOverlay *term) {
 }
 
 void toggleTerminalOverlay(TerminalOverlay *term) {
-	if(!term) return;
+	if(!term) {
+		printf("toggleTerminalOverlay: term is NULL!\n");
+		return;
+	}
 	Drawable *d = (Drawable *)term;
 	d->visible = !d->visible;
+	printf("Terminal toggled: visible=%d\n", d->visible);
 
 	if(d->visible && term->childPid < 0) {
 		const char *shaderFolder = getConfigValueString("shaderFolder");
+		printf("Spawning terminal in: %s\n", shaderFolder);
 		spawnTerminalProcess(term, shaderFolder);
 	}
 }

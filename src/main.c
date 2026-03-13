@@ -58,8 +58,11 @@ void screenshot(ShaderManager *sm);
 static TerminalOverlay *g_terminal = NULL;
 
 static void onTerminalToggle(void *userData) {
+	printf("onTerminalToggle called: g_terminal=%p\n", (void*)g_terminal);
 	if(g_terminal) {
 		toggleTerminalOverlay(g_terminal);
+	} else {
+		printf("ERROR: g_terminal is NULL!\n");
 	}
 }
 
@@ -318,12 +321,12 @@ void initShaderManager(ShaderManager *sm, TextBox *notificationTB,
   sm->notification = notificationTB;
 
   if (DirectoryExists(folderPath)) {
-    FilePathList pl = LoadDirectoryFilesEx(
-        folderPath, getConfigValueString("shaderFileExtension"), false);
+    char *ext = getConfigValueString("shaderFileExtension");
+    FilePathList pl = LoadDirectoryFilesEx(folderPath, ext, false);
     for (int i = 0; i < pl.count; i++) {
-      printf("Grabbing file path: %s\n", pl.paths[i]);
       addShaderPath(sm, pl.paths[i]);
     }
+    free(ext);
   }
   if (sm->loadedShaderCount > 0) {
     sm->current = LoadShader(0, sm->shaderPaths[0]);
@@ -331,6 +334,7 @@ void initShaderManager(ShaderManager *sm, TextBox *notificationTB,
   } else {
     printf("no shaders at: %s\n", folderPath);
   }
+}
 }
 
 void swapOrReloadShader(ShaderManager *sm, int index) {

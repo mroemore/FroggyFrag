@@ -4,9 +4,16 @@ CFLAGS = -Iinc -lraylib -lm -lGL -lrt -ldl -lX11 -lvterm -DLINUX
 DEBUG_FLAGS = -g
 RELEASE_FLAGS = -O0
 
+PREFIX ?= /usr/local
+BINDIR = $(PREFIX)/bin
+DATADIR = $(PREFIX)/share/froggy-frag
+ICONDIR = $(PREFIX)/share/icons/hicolor
+DESKTOPDIR = $(PREFIX)/share/applications
+
 SRC_DIR = src
 OUT_DIR = bin
 TEST_DIR = tests
+RES_DIR = bin/resources
 
 TARGET = froggy-frag
 TEST_TARGET = $(OUT_DIR)/$(TARGET)_test
@@ -63,3 +70,36 @@ $(TEST_TARGET): $(OBJS) $(TEST_OBJS) | $(OUT_DIR)
 # Rule to compile test .c files into .o files in the tests directory
 $(TEST_DIR)/%.o: $(TEST_DIR)/%.c
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(TEST_DIR)
+
+# Install target
+install: $(OUT_DIR)/$(TARGET)
+	@echo "Installing froggy-frag..."
+	install -d $(DESTDIR)$(BINDIR)
+	install -d $(DESTDIR)$(DATADIR)/shaders
+	install -d $(DESTDIR)$(DATADIR)/images
+	install -d $(DESTDIR)$(DATADIR)/fonts
+	install -d $(DESTDIR)$(ICONDIR)/64x64/apps
+	install -d $(DESTDIR)$(ICONDIR)/128x128/apps
+	install -d $(DESTDIR)$(DESKTOPDIR)
+	install -m 755 $(OUT_DIR)/$(TARGET) $(DESTDIR)$(BINDIR)/$(TARGET)
+	install -m 644 $(RES_DIR)/shaders/*.glsl $(DESTDIR)$(DATADIR)/shaders/ 2>/dev/null || true
+	install -m 644 $(RES_DIR)/images/* $(DESTDIR)$(DATADIR)/images/ 2>/dev/null || true
+	install -m 644 $(RES_DIR)/fonts/* $(DESTDIR)$(DATADIR)/fonts/ 2>/dev/null || true
+	install -m 644 $(RES_DIR)/FroggyOutlined64px.png $(DESTDIR)$(ICONDIR)/64x64/apps/froggy-frag.png 2>/dev/null || true
+	install -m 644 $(RES_DIR)/FroggyOutlined128px.png $(DESTDIR)$(ICONDIR)/128x128/apps/froggy-frag.png 2>/dev/null || true
+	install -m 644 froggy-frag.desktop $(DESTDIR)$(DESKTOPDIR)/froggy-frag.desktop
+	@echo "Installation complete."
+	@echo "Binary: $(DESTDIR)$(BINDIR)/$(TARGET)"
+	@echo "Data:   $(DESTDIR)$(DATADIR)"
+
+# Uninstall target
+uninstall:
+	@echo "Uninstalling froggy-frag..."
+	rm -f $(DESTDIR)$(BINDIR)/$(TARGET)
+	rm -rf $(DESTDIR)$(DATADIR)
+	rm -f $(DESTDIR)$(ICONDIR)/64x64/apps/froggy-frag.png
+	rm -f $(DESTDIR)$(ICONDIR)/128x64/apps/froggy-frag.png
+	rm -f $(DESTDIR)$(DESKTOPDIR)/froggy-frag.desktop
+	@echo "Uninstallation complete."
+
+.PHONY: all clean dbg release install uninstall test

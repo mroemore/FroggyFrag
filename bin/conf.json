@@ -3,7 +3,7 @@
   "contentH": 240,
   "screenW": 600,
   "screenH": 600,
-  "shaderFileExtension": ".glsl",
+  ""shaderFileExtension": ".frag.glsl",
   "systemFontPath": "resources/fonts/Targa.ttf",
   "shaderFolder": "resources/shaders",
   "backgroundImagePath": "resources/images/train.png",

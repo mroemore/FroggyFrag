@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=FroggyFrag
+GenericName=Shader Preview Tool
+Comment=OpenGL fragment shader preview and development tool
+Exec=froggy-frag
+Icon=froggy-frag
+Terminal=false
+Type=Application
+Categories=Development;Graphics;
+Keywords=shader;opengl;glsl;graphics;preview;

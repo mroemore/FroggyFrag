@@ -19,6 +19,7 @@ void updateButton(void *self) {
 	btn->cBackground = btn->isHovered ? btn->cHover : btn->cNormal;
 
 	if(btn->isHovered && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+		printf("Button clicked! onClick=%p, userData=%p\n", (void*)btn->onClick, btn->userData);
 		if(btn->onClick != NULL) {
 			btn->onClick(btn->userData);
 		}
@@ -28,6 +29,8 @@ void updateButton(void *self) {
 void drawButton(void *self) {
 	Button *btn = (Button *)self;
 	Drawable *d = (Drawable *)btn;
+
+	if(!d->visible) return;
 
 	DrawRectangle(d->renderPos.x, d->renderPos.y, d->width, d->height, btn->cBackground);
 
